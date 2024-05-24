@@ -586,7 +586,7 @@ struct svgtiny_diagram *svgtiny_create(void)
 {
 	struct svgtiny_diagram *diagram;
 
-	diagram = calloc(sizeof(*diagram), 1);
+	diagram = calloc(1, sizeof(*diagram));
 	if (!diagram)
 		return 0;
 
