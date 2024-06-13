@@ -25,19 +25,21 @@ SVGTESTS="${SVGTESTS} test/ns-afl-svg/*.svg"
 
 svgdecode()
 {
-    OUTF=$(basename ${1} .svg)
-    CMPF=$(dirname  ${1})/${OUTF}.mvg
+    LEAFNAME=$(basename ${1} .svg) # leaf name of the test file
+    CHECKNAME=$(dirname ${1})/${LEAFNAME}.mvg # name of comparison file
+    OUTNAME=${TEST_OUT}/${LEAFNAME}.mvg # name of the generated output file
+
     echo "SVG:${1}" >> ${TEST_LOG}
-    ${TEST_PATH}/test_decode_svg ${1} 1.0 ${TEST_OUT}/${OUTF}.mvg 2>> ${TEST_LOG}
+    ${TEST_PATH}/test_decode_svg ${1} 1.0 ${OUTNAME} 2>> ${TEST_LOG}
     ECODE=$?
 
-    echo "Exit code:${ECODE}" >> ${TEST_LOG}
     if [ "${ECODE}" -gt 0 ];then
+        echo "Exit code:${ECODE}" >> ${TEST_LOG}
 	return ${ECODE}
     fi
 
-    if [ -f "${CMPF}" ]; then
-	cmp ${CMPF} ${TEST_OUT}/${OUTF}.ppm >> ${TEST_LOG} 2>> ${TEST_LOG}
+    if [ -f "${CHECKNAME}" ]; then
+	cmp ${CHECKNAME} ${OUTNAME} >> ${TEST_LOG} 2>> ${TEST_LOG}
 	if [ "$?" -ne 0 ]; then
 	    return 128
 	fi
