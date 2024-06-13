@@ -1576,6 +1576,7 @@ svgtiny_code svgtiny_parse_line(dom_element *line,
 }
 
 
+
 /**
  * Parse a <polyline> or <polygon> element node.
  *
@@ -1589,9 +1590,8 @@ svgtiny_code svgtiny_parse_poly(dom_element *poly,
 	svgtiny_code err;
 	dom_string *points_str;
 	dom_exception exc;
-	char *s, *points;
-	float *p;
-	unsigned int i;
+	float *pointv;
+	unsigned int pointc;
 
 	svgtiny_setup_state_local(&state);
 
@@ -1613,50 +1613,36 @@ svgtiny_code svgtiny_parse_poly(dom_element *poly,
 		return svgtiny_SVG_ERROR;
 	}
 
-	s = points = strndup(dom_string_data(points_str),
-			     dom_string_byte_length(points_str));
+	/* allocate space for path: it will never have more elements than bytes
+	 * in the string.
+	 */
+	pointc = dom_string_byte_length(points_str);
+	pointv = malloc(sizeof pointv[0] * pointc);
+	if (pointv == NULL) {
+		svgtiny_cleanup_state_local(&state);
+		return svgtiny_OUT_OF_MEMORY;
+	}
+
+	err = svgtiny_parse_poly_points(dom_string_data(points_str),
+					dom_string_byte_length(points_str),
+					pointv,
+					&pointc);
 	dom_string_unref(points_str);
-	/* read points attribute */
-	if (s == NULL) {
-		svgtiny_cleanup_state_local(&state);
-		return svgtiny_OUT_OF_MEMORY;
+	if (err != svgtiny_OK) {
+		free(pointv);
+		state.diagram->error_line = -1; /* poly->line; */
+		state.diagram->error_message =
+				"polyline/polygon: failed to parse points";
+	} else {
+		if (pointc > 0) {
+			pointv[0] = svgtiny_PATH_MOVE;
+		}
+		if (polygon) {
+			pointv[pointc++] = svgtiny_PATH_CLOSE;
+		}
+
+		err = svgtiny_add_path(pointv, pointc, &state);
 	}
-	/* allocate space for path: it will never have more elements than s */
-	p = malloc(sizeof p[0] * strlen(s));
-	if (!p) {
-		free(points);
-		svgtiny_cleanup_state_local(&state);
-		return svgtiny_OUT_OF_MEMORY;
-	}
-
-	/* parse s and build path */
-	for (i = 0; s[i]; i++)
-		if (s[i] == ',')
-			s[i] = ' ';
-	i = 0;
-	while (*s) {
-		float x, y;
-		int n;
-
-		if (sscanf(s, "%f %f %n", &x, &y, &n) == 2) {
-			if (i == 0)
-				p[i++] = svgtiny_PATH_MOVE;
-			else
-				p[i++] = svgtiny_PATH_LINE;
-			p[i++] = x;
-			p[i++] = y;
-			s += n;
-                } else {
-			break;
-                }
-        }
-        if (polygon)
-		p[i++] = svgtiny_PATH_CLOSE;
-
-	free(points);
-
-	err = svgtiny_add_path(p, i, &state);
-
 	svgtiny_cleanup_state_local(&state);
 
 	return err;

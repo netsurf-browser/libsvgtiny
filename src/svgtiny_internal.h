@@ -85,6 +85,10 @@ char *svgtiny_strndup(const char *s, size_t n);
 #define strndup svgtiny_strndup
 #endif
 
+/* svgtiny_parse.c */
+svgtiny_code svgtiny_parse_poly_points(const char *data, size_t datalen,
+		float *pointv, unsigned int *pointc);
+
 /* svgtiny_gradient.c */
 void svgtiny_find_gradient(const char *id,
 		struct svgtiny_parse_state_gradient *grad,

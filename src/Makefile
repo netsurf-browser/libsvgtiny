@@ -1,5 +1,5 @@
 # Sources
-DIR_SOURCES := svgtiny.c svgtiny_gradient.c svgtiny_list.c
+DIR_SOURCES := svgtiny.c svgtiny_gradient.c svgtiny_list.c svgtiny_parse.c
 
 SOURCES := $(SOURCES)
 
