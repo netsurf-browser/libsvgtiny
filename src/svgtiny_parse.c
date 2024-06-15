@@ -343,3 +343,79 @@ svgtiny_parse_poly_points(const char *text,
 
 	return svgtiny_OK;
 }
+
+
+/**
+ * Parse a length as a number of pixels.
+ */
+svgtiny_code
+svgtiny_parse_length(const char *text,
+		     size_t textlen,
+		     int viewport_size,
+		     float *length)
+{
+	svgtiny_code err;
+	float number;
+	const char *unit = NULL;
+	int unitlen;
+	float font_size = 20; /*css_len2px(&state.style.font_size.value.length, 0);*/
+
+	err = svgtiny_parse_number(text, textlen, &unit, &number);
+	if (err != svgtiny_OK) {
+		unitlen = -1;
+	} else {
+		unitlen = (text + textlen) - unit;
+	}
+
+	/* discount whitespace on the end of the unit */
+	while(unitlen > 0) {
+		if ((unit[unitlen - 1] != 0x20) &&
+		    (unit[unitlen - 1] != 0x09) &&
+		    (unit[unitlen - 1] != 0x0A) &&
+		    (unit[unitlen - 1] != 0x0D)) {
+			break;
+		}
+		unitlen--;
+	}
+
+	/* decode the unit */
+	*length = 0;
+	switch (unitlen) {
+	case 0:
+		/* no unit, assume pixels */
+		*length = number;
+		break;
+	case 1:
+		if (unit[0] == '%') {
+			/* percentage of viewport */
+			*length = number / 100.0 * viewport_size;
+		}
+		break;
+
+	case 2:
+		if (unit[0] == 'e' && unit[1] == 'm') {
+			*length = number * font_size;
+		} else if (unit[0] == 'e' && unit[1] == 'x') {
+			*length = number / 2.0 * font_size;
+		} else if (unit[0] == 'p' && unit[1] == 'x') {
+			*length = number;
+		} else if (unit[0] == 'p' && unit[1] == 't') {
+			*length = number * 1.25;
+		} else if (unit[0] == 'p' && unit[1] == 'c') {
+			*length = number * 15.0;
+		} else if (unit[0] == 'm' && unit[1] == 'm') {
+			*length = number * 3.543307;
+		} else if (unit[0] == 'c' && unit[1] == 'm') {
+			*length = number * 35.43307;
+		} else if (unit[0] == 'i' && unit[1] == 'n') {
+			*length = number * 90;
+		}
+		break;
+
+	default:
+		/* unknown unit */
+		break;
+	}
+
+	return svgtiny_OK;
+}

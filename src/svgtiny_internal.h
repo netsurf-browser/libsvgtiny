@@ -67,8 +67,6 @@ struct svgtiny_parse_state {
 struct svgtiny_list;
 
 /* svgtiny.c */
-float svgtiny_parse_length(dom_string *s, int viewport_size,
-		const struct svgtiny_parse_state state);
 void svgtiny_parse_color(dom_string *s, svgtiny_colour *c,
 		struct svgtiny_parse_state_gradient *grad,
 		struct svgtiny_parse_state *state);
@@ -88,6 +86,8 @@ char *svgtiny_strndup(const char *s, size_t n);
 /* svgtiny_parse.c */
 svgtiny_code svgtiny_parse_poly_points(const char *data, size_t datalen,
 		float *pointv, unsigned int *pointc);
+svgtiny_code svgtiny_parse_length(const char *text, size_t textlen,
+		int viewport_size, float *length);
 
 /* svgtiny_gradient.c */
 void svgtiny_find_gradient(const char *id,

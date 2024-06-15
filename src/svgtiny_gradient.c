@@ -61,12 +61,12 @@ void svgtiny_find_gradient(const char *id,
 	grad->gradient_transform.d = 1;
 	grad->gradient_transform.e = 0;
 	grad->gradient_transform.f = 0;
-	
+
 	exc = dom_string_create_interned((const uint8_t *) id,
 			strlen(id), &id_str);
 	if (exc != DOM_NO_ERR)
 		return;
-	
+
 	exc = dom_document_get_element_by_id(state->document, id_str,
 					     &gradient);
 	dom_string_unref(id_str);
@@ -76,16 +76,16 @@ void svgtiny_find_gradient(const char *id,
 		#endif
 		return;
 	}
-	
+
 	exc = dom_node_get_node_name(gradient, &name);
 	if (exc != DOM_NO_ERR) {
 		dom_node_unref(gradient);
 		return;
 	}
-	
+
 	if (dom_string_isequal(name, state->interned_linearGradient))
 		svgtiny_parse_linear_gradient(gradient, grad, state);
-	
+
 	dom_node_unref(gradient);
 	dom_string_unref(name);
 
@@ -110,7 +110,7 @@ svgtiny_code svgtiny_parse_linear_gradient(dom_element *linear,
 	dom_string *attr;
 	dom_exception exc;
 	dom_nodelist *stops;
-	
+
 	exc = dom_element_get_attribute(linear, state->interned_href, &attr);
 	if (exc == DOM_NO_ERR && attr != NULL) {
 		if (dom_string_data(attr)[0] == (uint8_t) '#') {
@@ -149,16 +149,16 @@ svgtiny_code svgtiny_parse_linear_gradient(dom_element *linear,
 		grad->gradient_y2 = attr;
 		attr = NULL;
 	}
-	
+
 	exc = dom_element_get_attribute(linear, state->interned_gradientUnits,
 					&attr);
 	if (exc == DOM_NO_ERR && attr != NULL) {
-		grad->gradient_user_space_on_use = 
+		grad->gradient_user_space_on_use =
 			dom_string_isequal(attr,
 					   state->interned_userSpaceOnUse);
 		dom_string_unref(attr);
 	}
-	
+
 	exc = dom_element_get_attribute(linear,
 					state->interned_gradientTransform,
 					&attr);
@@ -184,7 +184,7 @@ svgtiny_code svgtiny_parse_linear_gradient(dom_element *linear,
 		grad->gradient_transform.f = f;
 		dom_string_unref(attr);
         }
-	
+
 	exc = dom_element_get_elements_by_tag_name(linear,
 						   state->interned_stop,
 						   &stops);
@@ -195,7 +195,7 @@ svgtiny_code svgtiny_parse_linear_gradient(dom_element *linear,
 			dom_nodelist_unref(stops);
 			goto no_more_stops;
 		}
-		
+
 		for (stopnr = 0; stopnr < listlen; ++stopnr) {
 			dom_element *stop;
 			float offset = -1;
@@ -261,7 +261,7 @@ svgtiny_code svgtiny_parse_linear_gradient(dom_element *linear,
 			if (i == svgtiny_MAX_STOPS)
 				break;
 		}
-		
+
 		dom_nodelist_unref(stops);
 	}
 no_more_stops:
@@ -336,27 +336,46 @@ svgtiny_code svgtiny_add_path_linear_gradient(float *p, unsigned int n,
 	#endif
 
 	if (!grad->gradient_user_space_on_use) {
-		gradient_x0 = object_x0 +
-				svgtiny_parse_length(grad->gradient_x1,
-					object_x1 - object_x0, *state);
-		gradient_y0 = object_y0 +
-				svgtiny_parse_length(grad->gradient_y1,
-					object_y1 - object_y0, *state);
-		gradient_x1 = object_x0 +
-				svgtiny_parse_length(grad->gradient_x2,
-					object_x1 - object_x0, *state);
-		gradient_y1 = object_y0 +
-				svgtiny_parse_length(grad->gradient_y2,
-					object_y1 - object_y0, *state);
+		svgtiny_parse_length(dom_string_data(grad->gradient_x1),
+				     dom_string_byte_length(grad->gradient_x1),
+				     object_x1 - object_x0,
+				     &gradient_x0);
+		gradient_x0 += object_x0;
+
+		svgtiny_parse_length(dom_string_data(grad->gradient_y1),
+				     dom_string_byte_length(grad->gradient_y1),
+				     object_y1 - object_y0,
+				     &gradient_y0);
+		gradient_y0 += object_y0;
+
+		svgtiny_parse_length(dom_string_data(grad->gradient_x2),
+				     dom_string_byte_length(grad->gradient_x2),
+				     object_x1 - object_x0,
+				     &gradient_x1);
+		gradient_x1 += object_x0;
+
+		svgtiny_parse_length(dom_string_data(grad->gradient_y2),
+				     dom_string_byte_length(grad->gradient_y2),
+				     object_y1 - object_y0,
+				     &gradient_y1);
+		gradient_y1 += object_y0;
 	} else {
-		gradient_x0 = svgtiny_parse_length(grad->gradient_x1,
-				state->viewport_width, *state);
-		gradient_y0 = svgtiny_parse_length(grad->gradient_y1,
-				state->viewport_height, *state);
-		gradient_x1 = svgtiny_parse_length(grad->gradient_x2,
-				state->viewport_width, *state);
-		gradient_y1 = svgtiny_parse_length(grad->gradient_y2,
-				state->viewport_height, *state);
+		svgtiny_parse_length(dom_string_data(grad->gradient_x1),
+				     dom_string_byte_length(grad->gradient_x1),
+				     state->viewport_width,
+				     &gradient_x0);
+		svgtiny_parse_length(dom_string_data(grad->gradient_y1),
+				     dom_string_byte_length(grad->gradient_y1),
+				     state->viewport_height,
+				     &gradient_y0);
+		svgtiny_parse_length(dom_string_data(grad->gradient_x2),
+				     dom_string_byte_length(grad->gradient_x2),
+				     state->viewport_width,
+				     &gradient_x1);
+		svgtiny_parse_length(dom_string_data(grad->gradient_y2),
+				     dom_string_byte_length(grad->gradient_y2),
+				     state->viewport_height,
+				     &gradient_y1);
 	}
 	gradient_dx = gradient_x1 - gradient_x0;
 	gradient_dy = gradient_y1 - gradient_y0;
@@ -559,7 +578,7 @@ svgtiny_code svgtiny_add_path_linear_gradient(float *p, unsigned int n,
 
             return svgtiny_OK;
         }
-        
+
 	/* render triangles */
 	stop_count = grad->linear_gradient_stop_count;
 	assert(2 <= stop_count);
@@ -780,4 +799,3 @@ void svgtiny_invert_matrix(float *m, float *inv)
 	inv[4] = (m[2]*m[5] - m[3]*m[4]) / determinant;
 	inv[5] = (m[1]*m[4] - m[0]*m[5]) / determinant;
 }
-

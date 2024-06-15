@@ -1294,7 +1294,10 @@ svgtiny_code svgtiny_parse_circle(dom_element *circle,
 		return svgtiny_LIBDOM_ERROR;
 	}
 	if (attr != NULL) {
-		x = svgtiny_parse_length(attr, state.viewport_width, state);
+		svgtiny_parse_length(dom_string_data(attr),
+				     dom_string_byte_length(attr),
+				     state.viewport_width,
+				     &x);
 	}
 	dom_string_unref(attr);
 
@@ -1304,7 +1307,10 @@ svgtiny_code svgtiny_parse_circle(dom_element *circle,
 		return svgtiny_LIBDOM_ERROR;
 	}
 	if (attr != NULL) {
-		y = svgtiny_parse_length(attr, state.viewport_height, state);
+		svgtiny_parse_length(dom_string_data(attr),
+				     dom_string_byte_length(attr),
+				     state.viewport_height,
+				     &y);
 	}
 	dom_string_unref(attr);
 
@@ -1314,7 +1320,10 @@ svgtiny_code svgtiny_parse_circle(dom_element *circle,
 		return svgtiny_LIBDOM_ERROR;
 	}
 	if (attr != NULL) {
-		r = svgtiny_parse_length(attr, state.viewport_width, state);
+		svgtiny_parse_length(dom_string_data(attr),
+				     dom_string_byte_length(attr),
+				     state.viewport_width,
+				     &r);
 	}
 	dom_string_unref(attr);
 
@@ -1400,7 +1409,10 @@ svgtiny_code svgtiny_parse_ellipse(dom_element *ellipse,
 		return svgtiny_LIBDOM_ERROR;
 	}
 	if (attr != NULL) {
-		x = svgtiny_parse_length(attr, state.viewport_width, state);
+		svgtiny_parse_length(dom_string_data(attr),
+				     dom_string_byte_length(attr),
+				     state.viewport_width,
+				     &x);
 	}
 	dom_string_unref(attr);
 
@@ -1410,7 +1422,10 @@ svgtiny_code svgtiny_parse_ellipse(dom_element *ellipse,
 		return svgtiny_LIBDOM_ERROR;
 	}
 	if (attr != NULL) {
-		y = svgtiny_parse_length(attr, state.viewport_height, state);
+		svgtiny_parse_length(dom_string_data(attr),
+				     dom_string_byte_length(attr),
+				     state.viewport_height,
+				     &y);
 	}
 	dom_string_unref(attr);
 
@@ -1420,7 +1435,10 @@ svgtiny_code svgtiny_parse_ellipse(dom_element *ellipse,
 		return svgtiny_LIBDOM_ERROR;
 	}
 	if (attr != NULL) {
-		rx = svgtiny_parse_length(attr, state.viewport_width, state);
+		svgtiny_parse_length(dom_string_data(attr),
+				     dom_string_byte_length(attr),
+				     state.viewport_width,
+				     &rx);
 	}
 	dom_string_unref(attr);
 
@@ -1430,7 +1448,10 @@ svgtiny_code svgtiny_parse_ellipse(dom_element *ellipse,
 		return svgtiny_LIBDOM_ERROR;
 	}
 	if (attr != NULL) {
-		ry = svgtiny_parse_length(attr, state.viewport_width, state);
+		svgtiny_parse_length(dom_string_data(attr),
+				     dom_string_byte_length(attr),
+				     state.viewport_width,
+				     &ry);
 	}
 	dom_string_unref(attr);
 
@@ -1517,7 +1538,10 @@ svgtiny_code svgtiny_parse_line(dom_element *line,
 		return svgtiny_LIBDOM_ERROR;
 	}
 	if (attr != NULL) {
-		x1 = svgtiny_parse_length(attr, state.viewport_width, state);
+		svgtiny_parse_length(dom_string_data(attr),
+				     dom_string_byte_length(attr),
+				     state.viewport_width,
+				     &x1);
 	}
 	dom_string_unref(attr);
 
@@ -1527,7 +1551,10 @@ svgtiny_code svgtiny_parse_line(dom_element *line,
 		return svgtiny_LIBDOM_ERROR;
 	}
 	if (attr != NULL) {
-		y1 = svgtiny_parse_length(attr, state.viewport_height, state);
+		svgtiny_parse_length(dom_string_data(attr),
+				     dom_string_byte_length(attr),
+				     state.viewport_height,
+				     &y1);
 	}
 	dom_string_unref(attr);
 
@@ -1537,7 +1564,10 @@ svgtiny_code svgtiny_parse_line(dom_element *line,
 		return svgtiny_LIBDOM_ERROR;
 	}
 	if (attr != NULL) {
-		x2 = svgtiny_parse_length(attr, state.viewport_width, state);
+		svgtiny_parse_length(dom_string_data(attr),
+				     dom_string_byte_length(attr),
+				     state.viewport_width,
+				     &x2);
 	}
 	dom_string_unref(attr);
 
@@ -1547,7 +1577,10 @@ svgtiny_code svgtiny_parse_line(dom_element *line,
 		return svgtiny_LIBDOM_ERROR;
 	}
 	if (attr != NULL) {
-		y2 = svgtiny_parse_length(attr, state.viewport_height, state);
+		svgtiny_parse_length(dom_string_data(attr),
+				     dom_string_byte_length(attr),
+				     state.viewport_height,
+				     &y2);
 	}
 	dom_string_unref(attr);
 
@@ -1769,84 +1802,45 @@ void svgtiny_parse_position_attributes(dom_element *node,
 
 	exc = dom_element_get_attribute(node, state.interned_x, &attr);
 	if (exc == DOM_NO_ERR && attr != NULL) {
-		*x = svgtiny_parse_length(attr, state.viewport_width, state);
+		svgtiny_parse_length(dom_string_data(attr),
+				     dom_string_byte_length(attr),
+				     state.viewport_width,
+				     x);
 		dom_string_unref(attr);
 	}
 
 	exc = dom_element_get_attribute(node, state.interned_y, &attr);
 	if (exc == DOM_NO_ERR && attr != NULL) {
-		*y = svgtiny_parse_length(attr, state.viewport_height, state);
+		svgtiny_parse_length(dom_string_data(attr),
+				     dom_string_byte_length(attr),
+				     state.viewport_height,
+				     y);
 		dom_string_unref(attr);
 	}
 
 	exc = dom_element_get_attribute(node, state.interned_width, &attr);
 	if (exc == DOM_NO_ERR && attr != NULL) {
-		*width = svgtiny_parse_length(attr, state.viewport_width,
-					      state);
+		svgtiny_parse_length(dom_string_data(attr),
+				     dom_string_byte_length(attr),
+				     state.viewport_width,
+				     width);
 		dom_string_unref(attr);
 	}
 
 	exc = dom_element_get_attribute(node, state.interned_height, &attr);
 	if (exc == DOM_NO_ERR && attr != NULL) {
-		*height = svgtiny_parse_length(attr, state.viewport_height,
-					       state);
+		svgtiny_parse_length(dom_string_data(attr),
+				     dom_string_byte_length(attr),
+				     state.viewport_height,
+				     height);
 		dom_string_unref(attr);
 	}
 }
 
 
 /**
- * Parse a length as a number of pixels.
- */
-
-static float _svgtiny_parse_length(const char *s, int viewport_size,
-				   const struct svgtiny_parse_state state)
-{
-	int num_length = strspn(s, "0123456789+-.");
-	const char *unit = s + num_length;
-	float n = atof((const char *) s);
-	float font_size = 20; /*css_len2px(&state.style.font_size.value.length, 0);*/
-
-	UNUSED(state);
-
-	if (unit[0] == 0) {
-		return n;
-	} else if (unit[0] == '%') {
-		return n / 100.0 * viewport_size;
-	} else if (unit[0] == 'e' && unit[1] == 'm') {
-		return n * font_size;
-	} else if (unit[0] == 'e' && unit[1] == 'x') {
-		return n / 2.0 * font_size;
-	} else if (unit[0] == 'p' && unit[1] == 'x') {
-		return n;
-	} else if (unit[0] == 'p' && unit[1] == 't') {
-		return n * 1.25;
-	} else if (unit[0] == 'p' && unit[1] == 'c') {
-		return n * 15.0;
-	} else if (unit[0] == 'm' && unit[1] == 'm') {
-		return n * 3.543307;
-	} else if (unit[0] == 'c' && unit[1] == 'm') {
-		return n * 35.43307;
-	} else if (unit[0] == 'i' && unit[1] == 'n') {
-		return n * 90;
-	}
-
-	return 0;
-}
-
-float svgtiny_parse_length(dom_string *s, int viewport_size,
-			   const struct svgtiny_parse_state state)
-{
-	char *ss = strndup(dom_string_data(s), dom_string_byte_length(s));
-	float ret = _svgtiny_parse_length(ss, viewport_size, state);
-	free(ss);
-	return ret;
-}
-
-/**
  * Parse paint attributes, if present.
  */
-
 void svgtiny_parse_paint_attributes(dom_element *node,
 		struct svgtiny_parse_state *state)
 {
@@ -1867,8 +1861,12 @@ void svgtiny_parse_paint_attributes(dom_element *node,
 
 	exc = dom_element_get_attribute(node, state->interned_stroke_width, &attr);
 	if (exc == DOM_NO_ERR && attr != NULL) {
-		state->stroke_width = svgtiny_parse_length(attr,
-						state->viewport_width, *state);
+		float stroke_width;
+		svgtiny_parse_length(dom_string_data(attr),
+				     dom_string_byte_length(attr),
+				     state->viewport_width,
+				     &stroke_width);
+		state->stroke_width = stroke_width;
 		dom_string_unref(attr);
 	}
 
@@ -1896,12 +1894,12 @@ void svgtiny_parse_paint_attributes(dom_element *node,
 		}
 		if ((s = strstr(style, "stroke-width:"))) {
 			s += 13;
-			while (*s == ' ')
-				s++;
-			value = strndup(s, strcspn(s, "; "));
-			state->stroke_width = _svgtiny_parse_length(value,
-						state->viewport_width, *state);
-			free(value);
+			float stroke_width;
+			svgtiny_parse_length(s,
+					     strcspn(s, "; "),
+					     state->viewport_width,
+					     &stroke_width);
+			state->stroke_width = stroke_width;
 		}
 		free(style);
 		dom_string_unref(attr);
