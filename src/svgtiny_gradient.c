@@ -163,25 +163,23 @@ svgtiny_code svgtiny_parse_linear_gradient(dom_element *linear,
 					state->interned_gradientTransform,
 					&attr);
 	if (exc == DOM_NO_ERR && attr != NULL) {
-		float a = 1, b = 0, c = 0, d = 1, e = 0, f = 0;
-		char *s = strndup(dom_string_data(attr),
-				  dom_string_byte_length(attr));
-		if (s == NULL) {
-			dom_string_unref(attr);
-			return svgtiny_OUT_OF_MEMORY;
-		}
-		svgtiny_parse_transform(s, &a, &b, &c, &d, &e, &f);
-		free(s);
+		struct svgtiny_transformation_matrix tm = {
+			.a = 1, .b = 0, .c = 0, .d = 1, .e = 0, .f = 0
+		};
+		svgtiny_parse_transform(dom_string_data(attr),
+					dom_string_byte_length(attr),
+					&tm);
+
 		#ifdef GRADIENT_DEBUG
 		fprintf(stderr, "transform %g %g %g %g %g %g\n",
-			a, b, c, d, e, f);
+			tm.a, tm.b, tm.c, tm.d, tm.e, tm.f);
 		#endif
-		grad->gradient_transform.a = a;
-		grad->gradient_transform.b = b;
-		grad->gradient_transform.c = c;
-		grad->gradient_transform.d = d;
-		grad->gradient_transform.e = e;
-		grad->gradient_transform.f = f;
+		grad->gradient_transform.a = tm.a;
+		grad->gradient_transform.b = tm.b;
+		grad->gradient_transform.c = tm.c;
+		grad->gradient_transform.d = tm.d;
+		grad->gradient_transform.e = tm.e;
+		grad->gradient_transform.f = tm.f;
 		dom_string_unref(attr);
         }
 

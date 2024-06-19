@@ -2019,100 +2019,16 @@ void svgtiny_parse_font_attributes(dom_element *node,
 void svgtiny_parse_transform_attributes(dom_element *node,
 		struct svgtiny_parse_state *state)
 {
-	char *transform;
 	dom_string *attr;
 	dom_exception exc;
 
-	exc = dom_element_get_attribute(node, state->interned_transform,
-					&attr);
+	exc = dom_element_get_attribute(node, state->interned_transform, &attr);
 	if (exc == DOM_NO_ERR && attr != NULL) {
-		transform = strndup(dom_string_data(attr),
-				    dom_string_byte_length(attr));
-		svgtiny_parse_transform(transform, &state->ctm.a, &state->ctm.b,
-				&state->ctm.c, &state->ctm.d,
-				&state->ctm.e, &state->ctm.f);
-		free(transform);
+		svgtiny_parse_transform(dom_string_data(attr),
+					dom_string_byte_length(attr),
+					&state->ctm);
+
 		dom_string_unref(attr);
-	}
-}
-
-
-/**
- * Parse a transform string.
- */
-
-void svgtiny_parse_transform(char *s, float *ma, float *mb,
-		float *mc, float *md, float *me, float *mf)
-{
-	float a, b, c, d, e, f;
-	float za, zb, zc, zd, ze, zf;
-	float angle, x, y;
-	int n;
-	unsigned int i;
-
-	for (i = 0; s[i]; i++)
-		if (s[i] == ',')
-			s[i] = ' ';
-
-	while (*s) {
-		a = d = 1;
-		b = c = 0;
-		e = f = 0;
-		n = 0;
-		if ((sscanf(s, " matrix (%f %f %f %f %f %f ) %n",
-                            &a, &b, &c, &d, &e, &f, &n) == 6) && (n > 0))
-			;
-		else if ((sscanf(s, " translate (%f %f ) %n",
-                                 &e, &f, &n) == 2) && (n > 0))
-			;
-		else if ((sscanf(s, " translate (%f ) %n",
-                                 &e, &n) == 1) && (n > 0))
-			;
-		else if ((sscanf(s, " scale (%f %f ) %n",
-                                 &a, &d, &n) == 2) && (n > 0))
-			;
-		else if ((sscanf(s, " scale (%f ) %n",
-                                 &a, &n) == 1) && (n > 0))
-			d = a;
-		else if ((sscanf(s, " rotate (%f %f %f ) %n",
-                                 &angle, &x, &y, &n) == 3) && (n > 0)) {
-			angle = angle / 180 * M_PI;
-			a = cos(angle);
-			b = sin(angle);
-			c = -sin(angle);
-			d = cos(angle);
-			e = -x * cos(angle) + y * sin(angle) + x;
-			f = -x * sin(angle) - y * cos(angle) + y;
-		} else if ((sscanf(s, " rotate (%f ) %n",
-                                   &angle, &n) == 1) && (n > 0)) {
-			angle = angle / 180 * M_PI;
-			a = cos(angle);
-			b = sin(angle);
-			c = -sin(angle);
-			d = cos(angle);
-		} else if ((sscanf(s, " skewX (%f ) %n",
-                                   &angle, &n) == 1) && (n > 0)) {
-			angle = angle / 180 * M_PI;
-			c = tan(angle);
-		} else if ((sscanf(s, " skewY (%f ) %n",
-                                   &angle, &n) == 1) && (n > 0)) {
-			angle = angle / 180 * M_PI;
-			b = tan(angle);
-		} else
-			break;
-		za = *ma * a + *mc * b;
-		zb = *mb * a + *md * b;
-		zc = *ma * c + *mc * d;
-		zd = *mb * c + *md * d;
-		ze = *ma * e + *mc * f + *me;
-		zf = *mb * e + *md * f + *mf;
-		*ma = za;
-		*mb = zb;
-		*mc = zc;
-		*md = zd;
-		*me = ze;
-		*mf = zf;
-		s += n;
 	}
 }
 

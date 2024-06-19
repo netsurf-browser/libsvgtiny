@@ -8,6 +8,7 @@
 #include <stddef.h>
 #include <math.h>
 #include <float.h>
+#include <string.h>
 
 #include "svgtiny.h"
 #include "svgtiny_internal.h"
@@ -15,6 +16,7 @@
 #define SIGNIFICAND_MAX 100000000
 #define EXPONENT_MAX 38
 #define EXPONENT_MIN -38
+
 
 /**
  * parse text string into a float
@@ -273,6 +275,47 @@ svgtiny_parse_number_end:
 
 
 /**
+ * skip SVG spec defined whitespace
+ *
+ * \param cursor current cursor
+ * \param textend end of buffer
+ */
+static inline void advance_whitespace(const char **cursor, const char *textend)
+{
+	while((*cursor) < textend) {
+		if ((**cursor != 0x20) &&
+		    (**cursor != 0x09) &&
+		    (**cursor != 0x0A) &&
+		    (**cursor != 0x0D)) {
+			break;
+		}
+		(*cursor)++;
+	}
+}
+
+
+/**
+ * skip SVG spec defined comma and whitespace
+ *
+ * \param cursor current cursor
+ * \param textend end of buffer
+ */
+static inline void advance_comma_whitespace(const char **cursor, const char *textend)
+{
+	while((*cursor) < textend) {
+		if ((**cursor != 0x20) &&
+		    (**cursor != 0x09) &&
+		    (**cursor != 0x0A) &&
+		    (**cursor != 0x0D) &&
+		    (**cursor != 0x2C /* , */)) {
+			break;
+		}
+		(*cursor)++;
+	}
+}
+
+
+/**
  * parse text points into path points
  *
  * \param data Source text to parse
@@ -328,17 +371,8 @@ svgtiny_parse_poly_points(const char *text,
 			oddpoint=point;
 		}
 
-		/* skip whitespace or comma */
-		while(cursor < textend) {
-			if ((*cursor != 0x20) &&
-			    (*cursor != 0x09) &&
-			    (*cursor != 0x0A) &&
-			    (*cursor != 0x0D) &&
-			    (*cursor != 0x2C)) {
-				break;
-			}
-			cursor++;
-		}
+		/* advance cursor past whitespace (or comma) */
+		advance_comma_whitespace(&cursor, textend);
 	}
 
 	return svgtiny_OK;
@@ -417,5 +451,374 @@ svgtiny_parse_length(const char *text,
 		break;
 	}
 
+	return svgtiny_OK;
+}
+
+
+enum transform_type {
+	TRANSFORM_UNK,
+	TRANSFORM_MATRIX,
+	TRANSFORM_TRANSLATE,
+	TRANSFORM_SCALE,
+	TRANSFORM_ROTATE,
+	TRANSFORM_SKEWX,
+	TRANSFORM_SKEWY,
+};
+
+static inline svgtiny_code
+apply_transform(enum transform_type transform,
+		int paramc,
+		float *paramv,
+		struct svgtiny_transformation_matrix *tm)
+{
+        /* initialise matrix to cartesian standard basis
+	 * | 1 0 0 |
+	 * | 0 1 0 |
+	 * | 0 0 1 |
+	 */
+	float a = 1, b = 0, c = 0, d = 1, e = 0, f = 0; /* parameter matrix */
+	float za,zb,zc,zd,ze,zf; /* temporary matrix */
+	float angle;
+
+	/* there must be at least one parameter */
+	if (paramc < 1) {
+		return svgtiny_SVG_ERROR;
+	}
+
+	switch (transform) {
+	case TRANSFORM_MATRIX:
+		if (paramc != 6) {
+			/* too few parameters */
+			return svgtiny_SVG_ERROR;
+		}
+		a=paramv[0];
+		b=paramv[1];
+		c=paramv[2];
+		d=paramv[3];
+		e=paramv[4];
+		f=paramv[5];
+		break;
+
+	case TRANSFORM_TRANSLATE:
+		e = paramv[0];
+		if (paramc == 2) {
+			f = paramv[1];
+		}
+		break;
+
+	case TRANSFORM_SCALE:
+		a = d = paramv[0];
+		if (paramc == 2) {
+			d = paramv[1];
+		}
+		break;
+
+	case TRANSFORM_ROTATE:
+		angle = paramv[0] / 180 * M_PI;
+		a = cos(angle);
+		b = sin(angle);
+		c = -sin(angle);
+		d = cos(angle);
+
+		if (paramc == 3) {
+			e = -paramv[1] * cos(angle) +
+				paramv[2] * sin(angle) +
+				paramv[1];
+			f = -paramv[1] * sin(angle) -
+				paramv[2] * cos(angle) +
+				paramv[2];
+		} else if (paramc == 2) {
+			/* one or three paramters only*/
+			return svgtiny_SVG_ERROR;
+		}
+
+		break;
+
+	case TRANSFORM_SKEWX:
+		angle = paramv[0] / 180 * M_PI;
+		c = tan(angle);
+		break;
+
+	case TRANSFORM_SKEWY:
+		angle = paramv[0] / 180 * M_PI;
+		b = tan(angle);
+		break;
+
+	default:
+		/* unknown transform (not be possible to be here) */
+		return svgtiny_SVG_ERROR;
+	}
+
+	za = tm->a * a + tm->c * b;
+	zb = tm->b * a + tm->d * b;
+	zc = tm->a * c + tm->c * d;
+	zd = tm->b * c + tm->d * d;
+	ze = tm->a * e + tm->c * f + tm->e;
+	zf = tm->b * e + tm->d * f + tm->f;
+
+	tm->a = za;
+	tm->b = zb;
+	tm->c = zc;
+	tm->d = zd;
+	tm->e = ze;
+	tm->f = zf;
+
+	return svgtiny_OK;
+}
+
+
+/* determine transform function */
+static inline svgtiny_code
+parse_transform_function(const char **cursor,
+		     const char *textend,
+		     enum transform_type *transformout)
+{
+	const char *tokstart;
+	size_t toklen;
+	enum transform_type transform = TRANSFORM_UNK;
+
+	tokstart = *cursor;
+	while ((*cursor) < textend) {
+		if ((**cursor != 0x61 /* a */) &&
+		    (**cursor != 0x65 /* e */) &&
+		    (**cursor != 0x74 /* t */) &&
+		    (**cursor != 0x73 /* s */) &&
+		    (**cursor != 0x72 /* r */) &&
+		    (**cursor != 0x6B /* k */) &&
+		    (**cursor != 0x6C /* l */) &&
+		    (**cursor != 0x77 /* w */) &&
+		    (**cursor != 0x63 /* c */) &&
+		    (**cursor != 0x69 /* i */) &&
+		    (**cursor != 0x6D /* m */) &&
+		    (**cursor != 0x6E /* n */) &&
+		    (**cursor != 0x6F /* o */) &&
+		    (**cursor != 0x78 /* x */) &&
+		    (**cursor != 0x58 /* X */) &&
+		    (**cursor != 0x59 /* Y */)) {
+			break;
+		}
+		(*cursor)++;
+	}
+	toklen = (*cursor) - tokstart;
+
+	if (toklen == 5) {
+		/* scale, skewX, skewY */
+		if (strncmp("scale", tokstart, 5) == 0) {
+			transform = TRANSFORM_SCALE;
+		} else if (strncmp("skewX", tokstart, 5) == 0) {
+			transform = TRANSFORM_SKEWX;
+		} else if (strncmp("skewY", tokstart, 5) == 0) {
+			transform = TRANSFORM_SKEWY;
+		}
+	} else if (toklen == 6) {
+		/* matrix, rotate */
+		if (strncmp("matrix", tokstart, 6) == 0) {
+			transform = TRANSFORM_MATRIX;
+		} else if (strncmp("rotate", tokstart, 6) == 0) {
+			transform = TRANSFORM_ROTATE;
+		}
+	} else if (toklen == 9) {
+		/* translate */
+		if (strncmp("translate", tokstart, 9) == 0) {
+			transform = TRANSFORM_TRANSLATE;
+		}
+	}
+	if (transform == TRANSFORM_UNK) {
+		/* invalid transform */
+		return svgtiny_SVG_ERROR;
+	}
+
+	*transformout = transform;
+	return svgtiny_OK;
+}
+
+
+/**
+ * parse transform function parameters
+ *
+ * \param cursor current cursor
+ * \param textend end of buffer
+ * \param paramc max number of permitted parameters on input and number found on output
+ * \param paramv vector of float point numbers to put result in must have space for paramc entries
+ * \return svgtiny_OK and paramc and paramv updated or svgtiny_SVG_ERROR on error
+ */
+static inline svgtiny_code
+parse_transform_parameters(const char **cursor,
+			   const char *textend,
+			   int *paramc,
+			   float *paramv)
+{
+	int param_idx = 0;
+	int param_max;
+	const char *tokend;
+	svgtiny_code err;
+
+	param_max = *paramc;
+
+	for(param_idx = 0; param_idx < param_max; param_idx++) {
+		err = svgtiny_parse_number(*cursor,
+					   textend - (*cursor),
+					   &tokend,
+					   &paramv[param_idx]);
+		if (err != svgtiny_OK) {
+			/* failed to parse number */
+			return err;
+		}
+		*cursor = tokend;
+
+		/* advance cursor past optional whitespace */
+		advance_whitespace(cursor, textend);
+
+		if (*cursor >= textend) {
+			/* parameter list without close parenteses */
+			return svgtiny_SVG_ERROR;
+		}
+
+		/* close parentheses ends parameters */
+		if (**cursor == 0x29 /* ) */) {
+			(*cursor)++;
+			*paramc = param_idx + 1;
+			return svgtiny_OK;
+		}
+
+		/* comma can be skipped */
+		if (**cursor == 0x2C /* , */) {
+			(*cursor)++;
+			if ((*cursor) >= textend) {
+				/* parameter list without close parenteses */
+				return svgtiny_SVG_ERROR;
+			}
+		}
+
+		if ((*cursor) == tokend) {
+			/* no comma or whitespace between parameters */
+			return svgtiny_SVG_ERROR;
+		}
+	}
+	/* too many parameters for transform given */
+	return svgtiny_SVG_ERROR;
+}
+
+/**
+ * Parse and apply a transform attribute.
+ *
+ * https://www.w3.org/TR/SVG11/coords.html#TransformAttribute
+ *
+ * parse transforms into transform matrix
+ * | a c e |
+ * | b d f |
+ * | 0 0 1 |
+ *
+ * transforms to parse are:
+ *
+ * matrix(a b c d e f)
+ *     | a c e |
+ *     | b d f |
+ *     | 0 0 1 |
+ *
+ * translate(e f)
+ *     | 1 0 e |
+ *     | 0 1 f |
+ *     | 0 0 1 |
+ *
+ * translate(e)
+ *     | 1 0 e |
+ *     | 0 1 0 |
+ *     | 0 0 1 |
+ *
+ * scale(a d)
+ *     | a 0 0 |
+ *     | 0 d 0 |
+ *     | 0 0 1 |
+ *
+ * scale(a)
+ *     | a 0 0 |
+ *     | 0 1 0 |
+ *     | 0 0 1 |
+ *
+ * rotate(ang x y)
+ *     | cos(ang) -sin(ang) (-x * cos(ang) + y * sin(ang) + x) |
+ *     | sin(ang)  cos(ang) (-x * sin(ang) - y * cos(ang) + y) |
+ *     | 0        0         1                                  |
+ *
+ * rotate(ang)
+ *     | cos(ang) -sin(ang) 0 |
+ *     | sin(ang)  cos(ang) 0 |
+ *     | 0         0        1 |
+ *
+ * skewX(ang)
+ *     | 1 tan(ang) 0 |
+ *     | 0 1        0 |
+ *     | 0 0        1 |
+ *
+ * skewY(ang)
+ *     | 1        0 0 |
+ *     | tan(ang) 1 0 |
+ *     | 0        0 1 |
+ *
+ *
+ */
+svgtiny_code
+svgtiny_parse_transform(const char *text,
+			size_t textlen,
+			struct svgtiny_transformation_matrix *tm)
+{
+	const char *cursor = text; /* text cursor */
+	const char *textend = text + textlen;
+	enum transform_type transform = TRANSFORM_UNK;
+	/* mapping of maimum number of parameters for each transform */
+	const int param_max[]={0,6,2,2,3,1,1};
+	const char *paramend;
+	int paramc;
+	float paramv[6];
+	svgtiny_code err;
+
+	/* advance cursor past optional whitespace */
+	advance_whitespace(&cursor, textend);
+
+	/* zero or more transform followed by whitespace or comma */
+	while (cursor < textend) {
+		err = parse_transform_function(&cursor, textend, &transform);
+		if (err != svgtiny_OK) {
+			/* invalid transform */
+			goto transform_parse_complete;
+		}
+
+		/* advance cursor past optional whitespace */
+		advance_whitespace(&cursor, textend);
+
+		/* open parentheses */
+		if (*cursor != 0x28 /* ( */) {
+			/* invalid syntax */
+			goto transform_parse_complete;
+		}
+		cursor++;
+
+		paramc=param_max[transform];
+		err = parse_transform_parameters(&cursor, textend, &paramc, paramv);
+		if (err != svgtiny_OK) {
+			/* invalid parameters */
+			goto transform_parse_complete;
+		}
+		paramend = cursor;
+
+		/* have transform type and at least one parameter */
+
+		/* apply transform */
+		err = apply_transform(transform, paramc, paramv, tm);
+		if (err != svgtiny_OK) {
+			/* transform failed */
+			goto transform_parse_complete;
+		}
+
+		/* advance cursor past whitespace (or comma) */
+		advance_comma_whitespace(&cursor, textend);
+		if (cursor == paramend) {
+			/* no comma or whitespace between transforms */
+			goto transform_parse_complete;
+		}
+
+	}
+transform_parse_complete:
 	return svgtiny_OK;
 }
