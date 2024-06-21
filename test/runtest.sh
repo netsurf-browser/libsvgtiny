@@ -10,6 +10,7 @@
 TEST_PATH=$1
 TEST_OUT=${TEST_PATH}/mvg
 TEST_LOG=${TEST_PATH}/test.log
+TEST_PROGRAM=${TEST_PATH}/test_svg2mvg
 
 mkdir -p ${TEST_OUT}
 
@@ -30,7 +31,7 @@ svgdecode()
     OUTNAME=${TEST_OUT}/${LEAFNAME}.mvg # name of the generated output file
 
     echo "SVG:${1}" >> ${TEST_LOG}
-    ${TEST_PATH}/test_decode_svg ${1} 1.0 ${OUTNAME} 2>> ${TEST_LOG}
+    ${TEST_PROGRAM} ${1} 1.0 ${OUTNAME} 2>> ${TEST_LOG}
     ECODE=$?
 
     if [ "${ECODE}" -gt 0 ];then
