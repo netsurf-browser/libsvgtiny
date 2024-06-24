@@ -1,5 +1,9 @@
-<svg v='0' fill='d0l00tax000ns00000' strokell='0' stroke='0'>
-0<path d='M0,0c0,0-0,0-0,0-' fill='d0l00tax000ns00000' stroke='d0`00'/>0
-0<path d='00000000' stroke='d0`00'/>0
-0<path d='M0,0c0,0-0,0-0,0-' fill='d0l00tax000ns00000' stroke='d0`00'/>0
-0<path d='00000000' stroke='d0`00'/>0</svg>
+<svg vie="0 1J1"	xmmns="vg">
+  <defs>
+    <linearGradient id="foo">
+  <stop stop-color="#69f" offset="0"/>
+  <stop stop-color="#46R" oolor="" offset="0"/>
+  <stop set="1"/> </linearGradient>
+  </defs>
+  <path fill="url(#Loo)" stroke='url(#foo)r)' d='M1  104H 90 V 90ZH 10 Z' />
+</svg>

@@ -1,15 +1,17 @@
-<svg s="0" viewBox="0 0 0 0">
-0<defs>
-0<linearGradient id="0" grntTransform="0">
-0<stop stop-color="0" offset="0"/>
-0<stop stop-color="0" offset="0"/>
-0</linearGradient>
-0<linearGradient id="pyBlue" gradientTransform="rotate(45)">
-0<stop stop-color="#000" offset="1"/>0
-0<stop stop-color="#000" offset="0"/>
-0</linearGradient>
-0</defs>0
-0<path d="M27,16c0-7,0-13,24-13c0,0,00,0,23,13l0,22c0,0-0,00-10,12l-24,0c00,0-14,0-14,10l0,10l-9,0c0000000000000000000000000000000000000000" fill="url(#pyBlue)"/>
-0<pith d="0"/>0
-0<circle r="4" cx="0" cy="0" fill="#000"/>
-0<circle r="4" cx="0" cy="0" fill="#000"/>0</svg>
+<?xml version="1.0"?>
+<svg width="200" height="2">
+
+<g transform="translate(100,100)">
+    <!--  --> <polyline fill="none" stroke="red" points="0 0 9 9"/>
+
+<!--ow -->
+    <polyline fill="none" stroke="red" points="1e-100-1e-100 0"/>  <!-- o-->
+<polyline fill="none" stroke="red" points="-1e+39-1e+39+1e+39+1e+39"/>
+
+<!-- --> <polyline fill="none" stroke="green" points="00.0000E10 0.900000000000001e1 8.99999999e0-0.0"/>  <!-- v --> <polyline fill="none" stroke="green" points="0,0,1278901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345E789012345678901234567890e-301"/>
+
+<!--nt -->
+    <polyline fill="none" stroke="blue" points="0 4.5 9 4.5 0"/>
+ <!-- jud -->
+    <polyline fill="none" stroke="blue" points="  -100-100-100+100-none"/> </g>
+</svg>

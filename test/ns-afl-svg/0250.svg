@@ -1,5 +1,9 @@
-<svg xmlns="0000000000" viewBox="0 0 4 1">
-0<!--0-->
-0<g>
-0<path d="M0000000 000000000L00000000 000000000Q00000000 00000000 00000000 000000000000L0000000 000000000Q0000000 00000000 00000000 000000000Q00000000 00000000 00000000 0L00000000 000000000L0000000 000000000L0000000 000000000L00000000 000000000L00000000 0000Q00000000000 00000000 00000000 000000000Z" fill="#000000"/>
-0</g>0</svg>
+<svg  olns="vg" viewBox="0 0">
+  <defs>
+<linearGradient id="pyYellow" gradientTransform="rotctematrix((45)">
+  <stop stop-color="fimM" offset="-.6"/>
+  <stop stop-color="bda1" offset="1"/> </linearGradient>
+<linearGradient i="ro">
+ </linearGradient>
+  </defs><path d="org/1" fill="url(#pyYellow)"/>>>
+</svg>

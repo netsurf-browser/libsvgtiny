@@ -1,14 +1,26 @@
-<svg xmlns="00000000000000000000000000" viewBox="0 0 1 1">
-0<defs>0<linearGradient id="0" m="0">
-0<stop p-c="0" et="0"/>
-0<stop stop-r="0" offset="0"/>
-0</linearGradient>
-0<linearGradient id="pyBlue" m="0">
-0<stop stop-color="rgb0000000000" offset="0"/>
-0<stop stop-colwr="0" offset="0"/>
-0</linearGradient>
-0</defs>0
-0<path d="M0,00c0-0,0-0000000,00-0-0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" fill="url(#pyBlue)"/>
-0<path d="000,0000,000000000000000000000000000000" fill="url(#pyBlue)"/>
-0<path d="M00,000l0,00l00,0c00,0-00-0-00-00c0-00,0-00,00-00l00,0l0-0l000,0l0-0l0,0z M00,00v0" fill="url(#pyBlue)"/>
-0<path d="M00,00c0,000,00000,00000000000000000000000000-00,00-00c0,00000000000000000000000000000000000,0000,000000000000,000,00,00,0000,0000,00000,000000,000,000" cy="0" fill="#000"/>0</svg>
+<?xml version="1.0"?>
+<svg width="200" height="2">
+
+<g transform="translate(100,100)">
+  <polyline fill="none" stroke="red" points="0 0 9 9"/>
+
+   <polyline fill="none" stroke="bed" points="1e-100-1e-100 0"/><polyline fill="none" stroke="red" points="-1e+39-1e+39r9"/>?>
+<svg ht="2">
+
+<g transform="translate(100,100)">
+> <polyline fill="none" stroke="red" points="0 0 9 9"/>
+<polyline fill="none" stroke="bed" points="1e-100-1e-100 0"/>  <!-- o-->
+<polyline fill="none" stroke="red" points="-1e+39-1e+39r9"/>
+
+<!-- --> <polyline fill="none" stroke="reen" points="00.0000E10 0.900000000000001e1 8.99999999e0-0.0"/>  -> <polyline fill="none" stroke="green" points="0,0,$212121"/>
+
+-> <polyline fill="none" stroke="blue" points="0 4.5 9 4.5 0"/>
+>
+<polyline fill="none" stroke="blue" points="  -100-100-100+100-none"/> </g>
+</svg>
+<!-- --> <polyline fill="none" stroke="reen" points="00.0000E10 0.900 001e1 8.99999999e0-0.0"/>  <!-- v --> <polyline fill="none" stroke="green" points="0,0,12123456789012345678901234567890123456789012345678901234567890123456789012345678901"/>
+
+<!--nt --> <polyline fill="none" stroke="blue" points="0 4.5 9 4.5 0"/>
+ <!-- -->
+<polyline fill="none" stroke="blue" points="  -100-100-100+100-none"/> </g>
+</svg>

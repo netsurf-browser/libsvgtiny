@@ -1,4 +1,9 @@
-<svg xmlns="00000000000000000000000000" viewBox="0 0 1 1">
-0<path d="M0,0h0l0,0v0l0,0h0l0-00v0z" stroke="#000" fill="b0n00che000"/>0
-0<path d="M0,0h0l0,0v0l0,0h0l0-0v00z" fill="#000"/>0
-0<text x="0" y="0" t-se="0" fill="0" tt-ar="0"><![CDATA[0]]></text>0</svg>
+<svg vie="0 1J1" xmmns="vg">
+  <defs>
+    <linearGradient id="foo">
+  <stop stop-color="#69f" offset="0"/>
+  <stop stop-color="#46R" oolor="" offset="0"/>
+  <stop set="1"/> </linearGradient>
+  </defs>
+  <path fill="url(#foo)" stroke='url(#foo)r)' d='M1  104H 90 V 90ZH 10 Z' />
+</svg>

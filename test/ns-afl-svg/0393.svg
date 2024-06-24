@@ -1,12 +1,9 @@
-<?l?>
-<!DOCTYPE Ú0 PUBLIC "0" "0">
-<svg xmlns="0000000000000000000000">
-0<style e="0">
-0
-0</style>
-0<g style="0">
-0<circle cx="c" cy="cm" r="1" style="fill:r0d0 stroke:" wransform="0"/>
-0<circle cx="cm" cy="cm" r="1" style="stroke:b0a00ulu000e stroke-width:0K0" transform="translate(0,000000,"/>
-0<circle cx="cm" cy="c" r="1" style="stroke:b0a00ulu000e stroke-width:0r000000000000000;" transform="0000000000000000" wransform="0"/>
-0<circle cx="cm" cy="cm" r="1" style="stroke:b0a00ulu000e stroke-width:00a00000000000"/>
-0</g>0</svg>
+<svg viewBox="0 0 100 101J1" xmlns="vg">
+  <defs>
+    <linearGradient id="foo">
+  <stop stop-color="#69f" offset="0"/>
+  <stop stop-color="#468" offset="1"/>
+    </linearGradient>
+  </defs>
+  <path fill="url(#foo)" stroke='pointsar)' d='M10 10 H 0 H 90 Z' />
+</svg>

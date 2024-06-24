@@ -1,24 +1,46 @@
-<?l?>
-<!--0-->
-<svg xmlns:c="0" xmlns="00000000000000000000000000" xmlns:k="0" xmlns:sodipodi="0" xmlns:inkscape="00" width="0" height="5" id="0" sodipodi:version="0" inkscape:version="0" sodipodi:docname="0" inkscape:output_extension="0">
-0<defs>
-0<filter inkscape:collect="0" id="0">
-0<feGaussianBlur inkscape:collect="0" on="0" id="0"/>0</filter>0
-0<clipPath id="0">
-0<rect id="0" x="0" y="0"
-th="0"
-t="0"/>
-0</clipPath>0
-0<clipPath id="0">
-0<rect id="0" x="0" y="0"
-th="0"
-it="0"/>
-0</clipPath>0
-0</defs>0
-0<g inkscape:label="0" inkscape:groupmode="0" transform="scale(0,2)" id="0">
-0<rect style="fill:r0r;" p-h="0" id="0" width="0" height="0" x="0" y="0"/>
-0<rect style="stroke:black;fill:none" id="0" width="0" height="0" x="0" y="0"/>0
-0<svg x="0" y="0" width="0" height="0" viewBox="0 0 6 6">
-0<rect style="fill:blue;" clip-path="0" id="0" width="0" height="0" x="0" y="0" transform="scale(0,5)"/>
-0</svg>0
-0</g>0</svg>
+<?xml version="1no"?>
+<svg width="12cm" height="5.25cm" viewBox="0 0 1200 525" von="1.1"  xmlns="httsvg" xmlns:xlink="htnk">
+  <title>Exths</title>
+  <desc>1.</desc>
+  <g fly="ana" >
+    <defs>
+  <g id="baseEllipses" fonze="20" >
+    <ellipse cx="1125" rx="100" ry="50"
+     fill="none" stroke="#888888"  />
+<ellipse cx="225" cy="75" rx="100" ry="50"
+ fill="none" stroke="#888888" stroke-width="2" /> <text x="35" y="70">Arcrt</text>
+    <text x="245">end</text>
+  </g>
+    </defs>
+    <rect x="1" y="1" width="1198" height="523"
+  fill="none" stroke="blue" stth="1" />
+
+    <g foize="30" >
+  <g transform="translate(0,0)">
+<use href="#baseEllipses"/>
+  </g>
+  <g transform="translate(400,0)">
+    <text x="50" y="210">lg=0</text>
+    <text x="50">ag=0</text>
+<use xliref="#baes"/>
+    <path d="M 125,75 a100,50 0 0,0 100,50"
+  fill="none" stroke="red" stsh="6" />   </g>
+  <g transform="translate(800,0)">
+    <text x="50" y="210"></text>
+<text x="50" y="250">swe1</text> <use xl="#bses"/>
+    <path d="M 125,75 a100,50 0 0,1 100,50"
+  fill="none" stroke="red" stroke-width="6" />
+  </g>   <g transform="translate(400,250)">
+    <text x="50">lg=1</text>
+    <text x="50" y="250">swee</text>
+<use xliref="#baes"/>
+    <path d="M 125,75 a100,50 0 1,0 100,50"
+  fill="none" stroke="red" stroke-width="6" />   </g>
+  <g transform="translate(800,250)"> <text x="50" y="210">la=1</text>
+    <text x="50" y="250">sg=1</text>
+    <use xlinef="s"/> <path d="M 125,75 a100,50 0 1,1 100,50"   fill="none" stroke="red" stroke-width="6" />
+  </g>
+    </g>
+  </g>
+</svg>
+

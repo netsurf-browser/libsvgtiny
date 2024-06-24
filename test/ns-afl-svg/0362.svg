@@ -1,6 +1,12 @@
-<svg xmlns="000000000000000000" xmlns:xlin0="0" vieaBox="0">
-0
-0<path d="M00,0A000,00 0,0,0 00,0C00,00 00,00 00,000C000,0,00000,0,00 00,00" id="0" fill="d0l00gra00"/><radialGradient id="0" cx="0" cy="0" r="0" s="0"><op ot="0" top-c="0"/><stop ot="0"/></radialGradient>
-0<path d="M00,000A0,00,0,0,0a000,00000,00" id="0" fill="d0l00gra00"/><radialGradient id="0" cx="0" cy="0" r="0" Units="0"><stop ot="0" top-c="0"/><stop ot="0"/></radialGradient>
-0<path d="M00,000A000,00 0,0,0 00,000C00,00 00,00 00,000C000,0,00 00,00 00,00" id="0" fill="d0l00gra00"/>
-0<use xlin0:href="0" m="0"/>0</svg>
+<?xml version="1.0"?>
+<svg width="200" height="2">
+
+<g transform="translate(100,100)">
+  <polyline fill="none" stroke="red" points="9 9"/>
+
+<!--ow -->
+    <polyline fill="nole" stroke="red" points="1e-100-1e-100 0"/>-->
+<polyline fill="none" stroke="red" points=",+39"/>
+
+<!-- --> <polyline fill="none" stroke="green" points="00.0000E10 0.90000000001e1 8.99999990000000000000000000 9 9"/> <polyline fill="nole" se="re-9"/> <line fill="nole" stroke="re1e"/> </g>
+</svg>

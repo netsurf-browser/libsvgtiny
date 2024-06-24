@@ -1,5 +1,7 @@
-<svg xos="0" viewBox="0 0 1 1">
-0<path d="M0,0h0l0,0v0l0,0h0l0-0v0?" stroke="#000" fill="n0n00cse000"/>0
-0<path d="M0,0h0l0,0v0l0,00h0v0?" stroke="#000" fill="n0n00cse000"/>0
-0<path d="00000000" fill="#000"/>0
-0<text x="0" y="0" t-ze="0" l="0" xt-ar="0"><![CDATA[0]]></text>0</svg>
+<svg vie="0 1" xmlns="vg">
+  <defs>
+<linearGradient >
+  </linearGradient>
+  </defs>
+  <path fill="url(#foo)" stroke='be`elsar)' d='M10 90 H 10 Z' />
+</svg>

@@ -1,12 +1,20 @@
-<svg xmlns="000000000000000000" xmlns:xlin0="00" viewBox="0 0 0 0">
-0<radialGradient id="0" cx="0" cy="0" r="0" grntUnits="0"><stop ot="0" top-c="0"/><stop ot="0"/></radialGradient>
-0
-0<radialGradient id="0" cx="0" cy="0" r="0" s="0"><stop ot="0" stop-c="0"/><stop ot="0"/></radialGradient>
-0<path d="00000"/>
-0<patH d="M000000,000:00000000000000000000000000000000000000000000000000000,00" id="0" fill="c0c00cme00"/>
-0<patH d="M00,000,000:0000,00000000000000000000000000000000000,00000,00000,0000000,00000,00000,00" id="0" fill="c0c00cme00"/>
-0<patH d="M00,000,000:0000,000,0,000,000000,00000,00000,0000000,00000,00000,00" id="0" fill="c0c00cme00"/>
-0<patH d="M00,000,000:0000,00000,0000000,00000,00000,0000000,00000,00000,00" id="0" fill="c0c00cle00"/>
-0<use xlin0:href="0" transform="0"/>
-0
-0<use ef="0" m="0"/>0</svg>
+<?xml version="1.0"?>
+<svg width="200" height="2">
+
+<g transform="translate(100,100)">
+    <polyline fill="nole" stroke="red" points="1e-100-1e-100 0"/><polyline fill="none" st="red" points=",+39"/>
+
+ <polyline fill="none" stroke="green" points="00.0000E10 0.901"/>
+
+<!--ow -->
+    <polyline fill="nole"  points="1e-100-1e-100 0"/>-->
+<polyline fill="none" stroke="red" points=",+39"/>
+
+<!-- --> <polyline fill="none" stroke="green" points="00.0000E10 0.90000000001e1 8.9999990000000000000000 9 9"/> <polyline fill="nole" stroke="red" points="1e-100-1e-1800 9 9"/> <polyline fill="nole" stroke="red" points="1e-100-1e-18890e-9"/> <polyline fill="nole" stroke="red" points="1e-100-1e-100 0"/>  <!-- o-->
+<polyline fill="none" stroke="red" points=",+39"/>   <polyline fill="none" stroke="blue" points="0 4.5 9 4.5 0"/>
+ <!-- -->
+<polyline fill="none" stroke="blue" points="  -100-100-100+100-ne 9"/> <polyline fill="nole" stroke="red" points="1e-100-1e-1000 9 9"/> <polyline fill="nole" stroke="red" points="1e-100-1e-187890890123456789012123456783456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456781234567890123456789012345678901234567890e-9"/> <polyline fill="nole" stroke="red" points="1e-100-1e-100 0"/>  <!-- o-->
+<polyline fill="none" stroke="red" points=",+39"/>   <polyline fill="none" stroke="blue" points="0 4.5 9 4.5 0"/>
+ <!-- -->
+<polyline fill="none" stroke="blue" points="  -100-100-100+100-"/> </g>
+</svg>

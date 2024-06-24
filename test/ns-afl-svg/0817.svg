@@ -1,12 +1,27 @@
-<?l?>
-<!DOCTYPE g PUBLIC "0" "0">
-<svg xmlns="000000000000000000">
-0<style pe="0">
-0
-0</style>0<g style="0">
-0<circle cx="cm" cy="cm" r="1" style="fill:r00000000000;stroke:b0a00a;"/>
-0<circle cx="cm" cy="c" r="1" style="fill:b0u0;stroke:black;stroke-width:1cm" transform=",00"/>
-0<circle cx="cm" cy="cm" r="1" style="fill:g0e00;stroke:b0a00a;"/>
-0<circle cx="cm" cy="c" r="1" style="fill:blue;stroke:black;stroke-width:1cm" transform="translate(00,0)"/>
-0<circle cx="cm" cy="cm" r="1" style="fill:green;stroke:b0a00a;stroke-width:001cm" transform="0,00"/>
-0</g>0</svg>
+<svg viewBox="0 0 0 1 101J1" xmlns="vg">
+  <defs>
+<linearGradient id="foo">
+  <stop stop-color="#69f" offset="0"/>
+  <stop stop-color="#468" offset="1"/>
+</linearGradient>
+  </defs>
+  <path fill="url(#foo)" stroke='pointsar)' d='M10 90 H 10 Z' />1  <defs>
+</defs>
+  <path fill="url(#foo)" stroke='pointslr)' d='M             3                                                                                                                               5 05, 0, 1, 0, 275 195
+0, 1, 125 2                                                                                     5 05, 0, 1, 0, 275 195
+0, 1, 125 275
+ 0 230 45 45, 0, 1, 10 230 45 4 1,45 45, 0, 0, 1, 125 275
+ 0 210 45 455 45, 0, 1, 10 230 45 45, 0, 1, 1,45 45, 0, 0, 1, 125 275
+ 0 210                                                                                                                                               75
+ 0 230 45 45, 0, 1, 10 230 45 45, 0, 1, 1,45 45, 0, 0, 1, 125 275
+ 0 210 45 455 45, 0, 1, 10 230 45 45, 0, 1, 1,45 45, 0, 0                                                                  5 05, 0, 1, 0, 275 195
+0, 1, 125 2                                                                                     5 05, 0, 1, 0, 275 195
+0, 1, 125 275
+ 0 230 45 45, 0, 1, 10 230 45 45, 0, 1, 1,45 45, 0, 0, 1, 125 275
+ 0 210 45 455 45, 0, 1, 10 230 45 45, 0          5 05, 0, 1, 0, 275 195
+0, 1, 125 275
+                                                                                                                                                     75
+ 0 230 45 45, 0, 1, 10 230 45 45, 0, 1, 1,45 45h 0, 0, 1, 125 275
+ 0 210 45 455 45, 0, 1, 10 230 45 45, 0, 1, 1,45 45, 0, 0, 1, 125 275
+ 0 210 45 45,   10 90 H 10 Z' />
+</svg>

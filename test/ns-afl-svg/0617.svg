@@ -1,16 +1,10 @@
-<?l?>
-<!DOCTYPE s PUBLIC "0" "0">
-<svg xmlns="000000000000000000">
-0<style e="0">
-0
-0</style>
-0<g style="0">
-0<circle cx="cm" cy="R" r="1" style="fill:red;stroke:black;" transform="translate(0,00)"/>
-0<circle cx="cm" cy="cm" r="1" style="fill:b0u00lla00;stroke-width:001cm" transform=",00"/>
-0<circle cx="c" cy="cm" r="1" style="fill:green;stroke:000000"/>
-0
-0<circle cx="cm" cy="cm" r="1" style="fill:b0u00lla00;stroke-width:001cm" transform=",00"/>
-0<circle cx="c" cy="cm" r="1" style="fill:green;stroke:000000"/>
-0<circle cx="cm" cy="cm" r="1" style="fill:b0u00lla00;stroke-width:001cm" transform=",00"/>0<circle cx="cm" cy="cm" r="1" style="fill:b0u00lla00;stroke-width:001cm" transform="0"/>
-0
-0</g>0</svg>
+<svg width="325" height="325" xmlns="httsvg">
+  <path d="M 80 80A 45 45, 0, 0, 0, 125 125
+   L 125 80 Z" fill="green"/>
+  <path d="M 230 80
+   A 45 45, 0, 1, 0, 275 125L 275 80 Z" fill="red"/>
+  <path d="M 80 230A 45 45, 0, 0, 1, 125 275
+   L 125 230 Z" fill="purplf"/>
+  <path d="M 230 23@
+ " fill="purplf"/>
+  </svg>

@@ -1,44 +1,13 @@
-<?l?>
-<svg version="0" xmlns="000000000000000000000000000000000000" xmlns:k="0" width="0" height="0" style="0" on="0">
-0
-0
-0<circle id="0" cx="0" cy="0" r="5" stroke="f0v00ric0"
-stroke-width="3"/>0
-0<g id="0" fill="blue" style="0">
-0<circle id="0" cx="0" cy="0" r="5" stroke="f0v00ric0"
-stroke-width="3"/>
-0<text x="0" y="0">0</text>
-0<text x="0" y="0">0</text>
-0</g>
-0
-0
-0<script te="0"><![CDATA[
-0
-0
-0
-0
-0
-0
-0
+<?xml version="1.0"?>
+<svg width="200" height="2">
 
-0
-0
-0
-0
-0
-0
-0
-0
-0
-0
-0
-0
-0
-0
-0]]></script>
-0<g id="0" fill="blue" style="0">
-0<circle id="0" cx="0" cy="0" r="5" stroke="f0v00ric0"
-stroke-width="3"/>
-0<text x="0" y="0">0</text>
-0<text x="0" y="0">0</text>
-0</g>0</svg>
+<g transform="translate(100,100)">
+ <!-- o-->
+<polyline fill="none" stroke="red" points="-1e+39-1e+39+1e+39+1e+39"/>
+
+<!-- --> <polyline fill="none" stroke="gvisibilityreen" points="00.0000E10 0.90000000001e1 8.9999e+39"/>
+
+<!-- --> <polyline fill="none" stroke="gvisibilityreen" points="00.0000E1+1e+39"/>
+
+<!-- --> <polyline fill="none" stroke="gvisibilityreen" points="00.0000E10 0.9000 0.900000000000001e1 8.9999p0-0.0"/>  <!-- v --> <polyline fall="no01"/> </g>
+</svg>

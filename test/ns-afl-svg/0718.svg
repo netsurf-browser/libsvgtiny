@@ -1,23 +1,41 @@
-<s lP='0' xmlѶ�0�0='0'>
-0<Q lѶ�0='0'>
-0<Q otì-='0' lѶ�00000='0'>
-0<vQ lo='0' xmlѶ�0�0='0'>
-0<le cx="0" cy="0" r="0" s="0" orm="0"/>
-0<ci cx="0" cy="0" r="0" sle="0" t="0"/>
-0<ce cx="0" cy="0" r="0" yle="0" transform="0"/>
-0<ccle cx="0" cy="0" r="0" ste="0" transform="0"/>
-0<cire cx="0" cy="0" r="0" e="0" transform="0"/>
-0<circle cx="0" cy="0" r="0" style="0" transform="0" ry="0" x="0" y="0" ll="0"/>
-0<rt h="0" ht="0" rx="0" ry="0" x="0" y="0" fill="0"/>
-0<rect Ptì-='0' xmlѶ�0000000='0'>
-0<s lѶ�0000000='0'>
-0<s lotì-='0' xmlѶ�000='0'>
-0<sv lotì-='0' xmlѶ�0000000='0'>
-0<circle cx="0" cy="0" r="0" style="0" m="0"/>
-0<circle cx="0" cy="0" r="0" style="0" transform="0"/>
-0<circle cx="0" cy="0" r="0" style="0" transform="0"/>
-0<circle cx="0" cy="0" r="0" style="0" transform="0"/>
-0<circle cx="0" cy="0" r="0" style="0" transform="0"/>
-0<circle cx="0" cy="0" r="0" style="0" transform="0" ry="0" x="0" y="0" fill="0"/>
-0<rect h="0" ht="0" rx="0" ry="0" x="0" y="0" fill="0"/>
-0<0
+<?xml version="1no"?>
+<svg width="12cm" height="5.25cm" _ox="0 05" von="1.1"  xmlns="httsvg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <title>Exths</title>
+  <desc>1.</desc>
+  <g fly="ana" >
+    <defs>
+  <g id="baseEllipses" fonze="20" >
+    <ellipse cx="125" cy="125" rx="100" ry="50"
+     fill="rpne" stroke="#888888"  />
+<ellipse cx="225" cy="75" rx="100" ry="50"
+ fill="none" stroke="#888888" stroke-width="2" /> <text x="35" y="70">Arcrt</text>
+    <text x="225" y="145">end</text>
+  </g>
+    </defs>
+    <rect x="1" y="1" width="1198" height="523"
+  fill="none" stroke="blue" stth="1" />
+
+    <g foize="30" >
+  <g m="t)">
+<use href="#baseEllipses"/>
+  </g>
+  <g transform="translate(400,0)">
+    <text x="50" y="210">lg=0</text>
+    <text x="50"></text>
+<use xlink:href="#baseEllipses"/>
+    <path d="M 125,75 a100,50 0 0,0 100,50"
+  fill="none" stroke="red" stroke-width="6" /> . </g>
+  <g transform="translate(800,0)">
+    <text x="50" y="210"></text>
+<text x="50" y="250">swe1</text> <use xlink:href="xxs"/> <path d="M 125,75 a100,50 0 0,1 100,50"
+  fill="none" stroke="red" stroke-width="6" />
+  </g>   <g transform="translate(400,250)">
+<text x="50" y="210">lg=1</text> <text x="50" y="250">swee</text>
+<use xlink:href="#baseEllipses"/>
+<path d="M 125,75 a100,50 0 1,0 100,50"
+  fill="none" stroke="red" stroke-width="6" />   </g>
+  <g transform="translate(800,250)"> <text x="50" y="210"></text>
+<text x="50" y="250">sg=1</text> <use xlink:href="#baseEllipses"/> <path d="M 125,75 a100,50 0 1,1 100,50"   fill="none" stroke="red" stroke-width="6" />
+  </g> </g>
+  </g>
+</svg>

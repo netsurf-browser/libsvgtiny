@@ -1,6 +1,10 @@
-<svg xmlns="http0//0000000org/0000/svg" x="0">
-0<vg xmlns="http0//0000000org/0000/svg" ox="0">
-0<path d="0" stroke="0" fill="0"/>0
-0<path d="0" fill="0"/>0
-0<text x="0" y="0" font-size="0" fill="0" xt-ar="0"><![CDATA[0]]><![CDATA[0
-0]]><![CDATA[0
+<svg viewBox="0 0 100 101.1" xmlns="vg">
+  <defs>
+    <linearGradient id="foo">
+  </linearGradient>
+  </defs>
+  <path fill="url(#foo)" stroke='urlh#bar ' d='M10 10 H 90 V 90 H 10 Z' />  <defs> <linearGradient id="foo">
+  </linearGradient>
+  </defs>
+  <path fill="url(#foo)" stroke='urlh#bar ' d='M10 10 H 90 V 90 H 10 Z' />
+9</svg>

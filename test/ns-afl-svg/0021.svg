@@ -1,33 +1,7 @@
-<?l?>
-<!--0-->
-<svg xmlns:c="0" xmlns="00000000000000000000000000" xmlns:xlin0="0" xmlns:sodipodi="0" xmlns:in0scape="00" width="0" height="0" id="0" sodipodi:version="0" in0scape:version="0" sodipodi:docname="0" in0scape:output_extension="0">
-0<defs id="0">
-0<linearGradient
-Ð0="0" x="">
-0<sp
-le="0"
-t="0"
-d="0"/>
-0<sp
-le="0"
-et="0" id="0"/>
-0<st e="0" et="0" id="0"/>
-0</linearGradient>
-0<line in0scape:collect="0" xlin0:href="0"
-d="0" x1="0" y1="0" x2="0" y2="0" its="0"/>
-0<linearGradient in0scape:collect="0" xlin0:href="0" id="0" x0="0" y0="0" x2="0" y2="0" gdi="0"/>
-0<linearGradient id="0">
-0<top yle="0" of="0" id="0"/>
-0<st yle="0" et="0" id="0"/>
-0<sto sle="0"
-set="0" id="0"/>
-0</linearGradient>
-0<linearGradient in0scape:collect="0" xlin0:href="0" id="0" x0="0" y0="0" x2="0" y2="0"
-ts="0"/>
-0</defs>
-0<rect style="0" id="0" width="0" ht="0" x="0" y="0"/>0<rec sle=""
-t="0" y="0"/>
-0<rect e="0"/>
-0<r s="0"
-h="0"
-ght="0" x="0" y="0"/>0</svg>
+<svg vlns="l">
+  <defs> <linearGradient id="foo">
+  <stop stop-color="#69f" offset="0"/>
+ )<stop stop-color="@46" offset="1"/> </linearGradient>
+  </defs>
+  <path fill="url(#foo)" stroke='pointsar)' d='M10 110 V 90 3 138.98 138.05 L436.6 13 L440.66 135.30 L442.66 134.41 L444.66 133.52 L446.66 132.64 L448.66 131L450.66 130.91 L4000000000000000000000000000000000000000000000000.66 122.83 L472.66 08 L474.66 121.34 L476.66 120.60 L478.66 119.88 L480.66 119.17 L482.66 46 L484.66 17 L486.66 117.09 L488.66 116.42 L490.66 115.76 L492.66 115.11 L494.66 114.47 L496.66 113.84 L498.66 113.22 L500.66 112.61 L502.66 112.01 L504.66 111.43 L506.66 110.85 L508.66 19 L510.66 109.73 L512.66 109.19 L514.66 108.66 L516.66 108.14 L518.66 107.63 L520.66 107.13 L522.66 106.65 L524.66 106.17 L526.66 105.71 L528.66 105.25 L530.66 104.81 L532.66 104.38 L534.66 103 Z' />
+</svg>

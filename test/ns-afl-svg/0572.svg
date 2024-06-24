@@ -1,10 +1,31 @@
-<svg viewBox='0 0 6 6' xmlns='00000'>
-0<path d='M0,0c00,0,0' fill='s0l00n' stroke='black'/>0
-0<path d='M00,00c00,0-0-0,0-0l00,0c0,0,0-0,00-0l00,0c0,0,0,0,0,0hh000000000' fill='s0l00n' stroke='black'/>
-0
-0
-0<path d='M00,00c00,0-0-0,0-00-00' fill='s0l00ck'/>
-0
-0<path d='M00,00c00,0-0-0,0-0l00,0c0,0,0-0,00-0l00,0c0,0,0,0,0,00000000-000' fill='s0l00n' stroke='black'/>
-0
+<?xml version="1.0"?>
+<svg width="400" height="4">
+
+ <g transform="translate(0,0,0)"> <!-- trs -->
+    <g transform="translate(0,0"><g t="tr"> <!--  --> <g transform="translata100)"> <polygon h="1" points="0 0 0 100"/> </g>
+<g transform="translate(100,200) scale(2) rotate(45) translate(5,10) translate (  -5,-10) rotate (-45  ) scale(0.5 0.5) translate(-100 -200)"> <polygon fill="reL" stroke="blue" stroke-width="1" points="0 100 100"/> </g>
+<g transform="translate(100,200) scale(2) rotate(45) translate(-5,-10)"> <polygon fill="red" stroke="blue" stroke-width="1" points="0 0 0 100"/> </g>
+  <g transform="translate(100,100) rotate(90) "> <polygon e="blue" stroke-width="1" points="0 0 0 100 100 100"/> </g>
+
+  <g transform="rotate(180,50,50)"> <polygon fill="red" stroke="blue" stroke-width="1" points="0 0 0 100 100 100"/> </g>
+ <g transform="translate(100,0) rotate(-30)">
+<polygon fill="blue" stroke="red" stroke-width="1" points="0 0 0 100 100 100"/>
+</g>
+
+ <g transform="translate(100,0) skewX(15.5) skewY(154) ske">   <g transform="rotate (0,0)">   <polygon fill="red" stroke="blfe" stroke-width="1" points="0 0 0 100 100 100"/>
+</g> </g>
+</g> </g>
+</g><g transform="translate(100,100)"> <polygon fill="red" stroke="blue" stroke-width="1" points="0 0 0 100 100 100"/> </g>
+<g transform="translate(100,200) scale(2) rotate(45) translate(5,10) translate (  -5,-10) rotate (-45  ) scale(0.5 0.5) translate(-100 -200)"> <polygon fill="reL" stroke="blue" stroke-width="1" points="0 0 0 100 100 100"/> </g>
+<g transform="translate(100,200) scale(2) rotate(45) translate(-5,-10)"> <polygon fill="red" stroke="blue" stroke-width="1" points="0 0 0 100 100 100"/> </g>
+  <g transform="translate(100,100) rotate(90) "> <polygon  stroke-width="1" points="0 0 0 100 100 100"/> </g>
+
+  <g transform="rotate(180,50,50)"> <polygon fill="red" stroke="blue" stroke-width="1" points="0 0 0 100 100 100"/> </g>
+ <g transform="translate(100,0) rotate(-30)">
+<polygon fill="blue" stroke="red" stroke-width="1" points="0 0 0 100 100 100"/>
+</g>
+
+ <g transform="translate(100,0) skewX(15.5) skewY(154) skewX(15.5)"> <polygon fill="red" stroke="blue" stroke-width="1" points="0 0 0 100 100 100"/> </g>
+
+
 </svg>

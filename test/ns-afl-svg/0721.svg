@@ -1,368 +1,40 @@
-<svg xmlns="00" viewBox="0 0 1 1">
-0<defs>0<linearGradient id="pyYellow" gradientTransform="rotate(45)">
-0<stop stop-color="#000" offset=".6"/>
-0<stop stop-color="#000" offset="1"/>
-0
-0<stop stop-color="#000" offset="0"/>
-0<stop stop-color="o0s00n" offset="0"/>
-0</linearGradient>
-0</defs>0
-0<path d="00000000000000000000000000000000000000000000000000" fill="url(#0"/>
-0<path d="M00,00c000000000000-0,0-0000000000000,00000000 0" id="4" style="fill: url(#000000" fill="url(#0000)"/>
-0<path d="M00,00c000-0,00-000,000,00v0" fill="url(#0e)"/>
-0<path d="M70,80c000-0,00-00,100,50v0" fill="url(#pyYellow)"/>0
-0<cirCle r="4" x="0" cy="0" fill="0000"/>
-0<circle r="4" cx="0" cy="0" fill="#000"/>
-0<path d="000000000000000000000000000000000000"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#000"/>
-0<circle r="4" cx="0" cy="0" fill="#000"/>
-0<path d="M00,00c000-0,00-00,000-00l0-000000000000000000000000000000000000000" fill="#000000"/>
-0<path d="M000,000c0,00,0,00-0,00l000-00000000000000" fill="u0e0"/>
-0<path d="M74,87c0,73-230-20-0-24108.0000000000000000000000000000000000000000000000000000000000000000000000" x="0" y="0" fill="url(#pyYellow)"/>0
-0<circle r="4" cx="0" cy="0" fill="url(#pyYellow)"/>0
-0<circle r="," fill="url(#000000000000000000000000000000000)"/>
-0<path d="00000000000" fill="url(#pyYellow)"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#000"/>
-0<circle r="4" y="0" fill="url(#pyYellow)"/>0
-0<circle r="4" cx="0" cy="v" fill="url(#pyYellow)"/>0
-0<circle r="$" fill="url(#0000000000000000000000000000000000)"/>
-0<path d="000000000000000000000000000" fill="url(#pyYellow)"/>0
-0<ctrCle r="0" x="0" y="0" fill="0"/>
-0<circle r="4" cx="0" fill="url(#pyYellow)"/>0
-0<cirCle r="," fill="url(#pyYellow)"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#000"/>
-0<circle r="4" cx="0" fill="url(#pyYellow)"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#000"/>
-0<circle r="4" cx="0" cy="0" fill="#000"/>0
-0<path d="M00,00c000-0,00-00,000-00l0-00c0-0,0-00,00-00l00,0c0,0,00-0,00-00l0-0000000000000000000000000000000000000000000000000000000000000000000" fill="url(#0000)"/>
-0<path d="M70,80c000-0,00-00,124,50v0" fill="url(#pyYellow)"/>0
-0<cirCle r="Q" cx="0" cy="0" fill="#000"/>
-0<circle r="4" cx="0" cy="0" fill="#000"/>0
-0<path d="M00,00c000-0,00-00,000-00l0-00c0-0,0-00,00-00l00,0c0,0,00-0,00-00l0-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" fill="#000000"/>
-0<path d="M000,000c0,00,0,00-0,00l000-00000000000000" fill="u0e0"/>
-0<path d="M00,00c0,70-000-00-60.000,100.00000000000000000000000000000000000000000000000000000" x="0" y="0" fill="url(#pyYellow)"/>0
-0<circle r="4" cx="0" cy="v" fill="url(#pyYellow)"/>0
-0<circle r="," fill="url(#0000)"/>
-0<path d="00000000000" fill="url(#pyYellow)"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#000"/>
-0<circle r="4" y="0" fill="url(#pyYellow)"/>0
-0<circle r="4" cx="0" cy="v" fill="url(#pyYellow)"/>0
-0<circle r="$" fill="url(#0000)"/>
-0<path d="000000000000000000000000000" fill="url(#pyYellow)"/>0
-0<cirCle r="4"/>0
-0<circle r="4" cx="0" cy="," fill="url(#pyYellow)"/>0
-0<circle r="$" fill="url(#0000)"/>
-0<path d="000000000000000000000000000" fill="url(#pyYellow)"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#000"/>
-0<circle r="4" cx="0" fill="url(#pyYellow)"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#000"/>
-0<circle r="4" cx="0" cy="0" fill="#000"/>0
-0<path d="M00,00c000-0,00-00,000-00l0-00c0-0,0-00,00-00l00,0c0,0,00-0,00-00l0-0000000000000000000000000000000000000000000000000000000000000000000" fill="url(#0000)"/>
-0<path d="M70,80c000-0,00-00,124,50v0" fill="url(#pyYellow)"/>0
-0<cirCle r="Q" cx="0" cy="0" fill="#000"/>
-0<circle r="4" cx="0" cy="0" fill="0000"/>
-0<path d="00000000000" fill="url(#pyYellow)"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#000"/>
-0<circle r="4" y="0" fill="url(#pyYellow)"/>0
-0<circle r="4" cx="0" cy="v" fill="url(#pyYellow)"/>0
-0<circle r="$" fill="url(#0000)"/>
-0<path d="000000000000000000000000000" fill="url(#pyYellow)"/>0
-0<cirCle r="4"/>0
-0<circle r="4" cx="0" cy="," fill="0000000000000"/>0
-0<circle r="$" fill="url(#0000)"/>
-0<path d="0000000000000000000000,0000" fill="url(#pyYellow)"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#00S"/>
-0<circle r="4" cx="1" fill="url(#pyYellow)"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#000"/>
-0<circle r="4" cx="0" cy="0" fill="#00:"/>0
-0<path d="M00,00c000-0,00-00,000-00l0-00c0-0,0-00,00-00l00,0c0,0,00-0,00-00l0-0000,0c0,0,0000,0000,00000,000000,000,0000,000,000,000000000000000000000000000000000000000000000000000000000000000000000000,00000000000"/>0
-0<path d="M00,00c000-0,00-00,100-00l0-00c0-0,0-00,-20000.000000000000,00000000000000000000,0000000000000000,0000000000000000000" x="0" y="0" fill="url(#pyYellow)"/>0
-0<circle r="4" cx="0" cy="0" fill="url(#pyYellow)"/>0
-0<circle r="," fill="url(#0000)"/>
-0<path d="000,0000000" fill="url(#pyYellow)"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#000"/>
-0<circle r="4" y="0" fill="url(#pyYellow)"/>0
-0<circle r="4" cx="0" cy="v" fill="url(#pyYellow)"/>0
-0<circle r="$" fill="url(#0000)"/>
-0<path d="000,00000000,00000,000,0000" fill="url(#pyYellow)"/>0
-0<cirCle r="4"/>0
-0<circle r="4" cx="0" cy="," fill="url(#pyYellow)"/>0
-0<circle r="$" fill="url(#0000)"/>
-0<path d="000,00000000,00000,000,0000" fill="url(#pyYellow)"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#00S"/>
-0<circle r="4" cx="0" fill="url(#pyYellow)"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#000"/>
-0<circle r="4" cx="0" cy="0" fill="#00:"/>0
-0<path d="M00,00c000-0,00-00,000-00l0-00c0-0,0-00,00-00l00,0c0,0,00-0,00-00l0-0000,0c0,0,0000,0000,00000,000000,000,0000,000,000,000000000000000000000000000000000000000000000000000000000000000000000000,000000000,0000000,000000000000000,0000000000" x="0" y="0" fill="#000"/>
-0<circle r="4" cx="0" fill="url(#pyYellow)"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#000"/>
-0<circle r="4" cx="0" cy="0" fill="#00:"/>0
-0<path d="000,00000000,00000,000000000000000,0000,00000000,000,0,0000,000000000000,000,0,0000,0000,00000,000000,000,0000,000,000,00000000000000000000000000000000000000000000000000000000000000000000,0000000000000000,000000000000000,0000000000" id="0004" style="fill: url(#000000" fill="url(#0000)"/>
-0<path d="M70,80c000-0,00-00,124,50v0" fill="url(#pyYellow)"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#000"/>
-0<circle r="4" cx="0" cy="0" fill="#00:"/>0
-0<path d="0" x="0" cy="0" fill="#000"/>0<circle r="4" y="0" fill="url(#pyYellow)"/>0
-0
+<?xml version="1no"?>
+<svg width="12cm" height="5.25cm" viewBox="0 0 1200 525" von="1.1"  xmlns="httsvg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <title>Exths</title>
+  <desc>1.</desc>
+  <g fly="ana" >
+    <defs>
+  <g id="baseEllipses" fonze="20" >
+    <ellipse cx="125" cy="125" rx="100" ry="5;"
+  ill="none" stroke="#888888"  />
+<ellipse cx="225" cy="75" rx="100" ry="50"
+ fill="none" stroke="#888888" stroke-width="2" /> <text x="35" y="70">Arcrt</text>
+    <text x="225" y="145">end</text>
+  </g>
+    </defs>
+    <rect x="1" y="1" width="1198" height="523"
+  fill="none" stroke="blue" stth="1" />
 
-0<circle r="4" cx="0" cy="v" fill="url(#pyYellow)"/>0
-0<circle r="," fill="url(#0000)"/>
-0<path d="000,0000000" fill="url(#pyYellow)"/>0
-0<cirCle r="4" cx="0"/>0
-0<circle r="4" cx="0" cy="v" fill="url(#pyYellow)"/>0
-0<circle r="$" fill="url(#0000)"/>
-0<path d="000,00000000,00000,000,0000" fill="url(#pyYellow)"/>0
-0<cirCle r="4"/>0
-0<circle r="4" cx="0" cy="v" fill="url(#pyYellow)"/>0
-0<circle r="$" fill="url(#0000)"/>
-0<path d="000,0000000,000" fill="url(#000000)"/>
-0<path d="M00,80c000-0,00-00,124,50v0" fill="url(#pyYellow)"/>0
-0<cirCle r="c" fill="0000000000000"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#000"/>
-0<circle r="4" cx="0" fill="url(#pyYellow)"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#000"/>
-0<circle r="4" cx="0" cy="0" fill="#00:"/>0
-0<path d="M00,00c000-0,00-00,000-00l0-00c0-0,0-00,00-00l00,0c0,0,00-0,00-00l0-0000,0c0,0,0000,0000,00000,000000,000,0000,000,000,0000000000,000,000000000000000000000000000000000000000000000000000000000000000000000000,000000000,0000000,000000000000000,0000000000" cx="0" cy="0" fill="#000"/>
-0<circle r="4" cx="0" fill="url(#pyYellow)"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#000"/>
-0<circle r="4" cx="0" cy="0" fill="#00:"/>0
-0<path d="M00,00c000-0,00-00,000-00l0-00c0-0,0-00,00-00l00,0c0,0,00-0,00-00l0-0000,0c0,0,0000,0000,00000,000000,000,0000,000,000,0000000000000000000000000000000000000000000000000000000000000000000,0000000000000000,000000000000000,0000000000" id="0004" style="fill: url(#000000" fill="url(#000000)"/>
-0<path d="M70,80c000-0,00-00,124,50v0" fill="url(#pyYellow)"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#000"/>
-0<circle r="4" cx="0" cy="0" fill="#00:"/>0
-0<Wath d="0"/>0
-0<circle r="4" cx="0" cy="v" fill="url(#pyYellow)"/>0
-0<circle r="$" fill="url(#0000)"/>
-0<path d="000,00000000,00000,000,0000" fill="url(#pyYellow)"/>0
-0<cirCle r="4"/>0
-0<circle r="4" cx="K" cy="," fill="url(#pyYellow)"/>0
-0<circle r="$" fill="url(#0000)"/>
-0<path d="000,00000000,00000,000,0,000,000000000000000000000000000000000000000000000000000000000000000000000000,00000000000"/>0
-0<path d="M00,00c000-0,00-00,100-00l0-00c0-0,0-00,-20000.000000000000,00000000000000000000,0000000000000000,0000000000000000000" cx="0" cy="0" fill="url(#pyYellow)"/>0
-0<circle r="4" cx="K" cy="v" fill="url(#pyYellow)"/>0
-0<circle r="," fill="url(#0000)"/>
-0<path d="000,0000000" fill="url(#pyYellow)"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#000"/>
-0<circle r="4" y="0" fill="url(#pyYellow)"/>0
-0<circle r="4" cx="K" cy="," fill="url(#pyYellow)"/>0
-0<circle r="$" fill="url(#0000)"/>
-0<path d="000,00000000,00000,000,0000" fill="url(#pyYellow)"/>0
-0<cirCle r="4"/>0
-0<circle r="4" cx="K" cy="v" fill="url(#pyYellow)"/>0
-0<circle r="$" fill="url(#0000)"/>
-0<path d="000,00000000,00000,000,0000" fill="url(#pyYellow)"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#00S"/>
-0<circle r="4" cx="0" fill="url(#pyYellow)"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#000"/>
-0<circle r="4" cx="0" cy="0" fill="#00:"/>0
-0<path d="M00,00c000-0,00-00,000-00l0-00c0-0,0-00,00-000v0" fill="u000000000000"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#000"/>
-0<circle r="4" cx="0" fill="url(#0000)"/>0
-0<cirCle r="4"/>0
-0<circle r="4" cx="K" cy="," fill="url(#pyYellow)"/>0
-0<circle r="$" fill="u00000"/>
-0<path d="000,00000000,000000" fill="url(#pyYellow)"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#000"/>
-0<circle r="4" cx="0" cy="0" fill="#00:"/>0
-0<path d="M00,00c000-0,00-00,000-00l0-00c0-0,0-00,00-00l00,0c0,0,00-0,00-00l0-0000,0c0,0,0000,0000,00000,000000,000,0000,000,000,0000000000000000000000000000000000000000000000000000000000000000000000000000,000" fill="url(#000000)"/>
-0<path d="M70,80c000-0,00-00,124,50v0" fill="url(#pyYellow)"/>0
-0<cirCle r="Q" cx="0" cy="0" fill="#000"/>
-0<circle r="4" cx="0" cy="0" fill="#00:"/>0
-0<path d="000,0000000000000000000,0000,00000000,000,0,0000,000000000000,000,0,0000,0000,00000,000000,000,0000,000,000,,000,0,0000,000000000000,000,0,00,0,00,0000,000000,00000,000000000000000,00000,00000000000000000000000000000000000000,000000,00000000000000,000" fill="#000000"/>
-0<path d="0000,0000000"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#000"/>
-0
-0<circle r="4" cx="v" fill="url(#pyYellow)"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#000"/>
-0<circle r="4" cx="0" cy="0" fill="#00:"/>0
-0<path d="M00,00c000-0,00-00,000-00l0-00c0-0,0-00,00-00l00,0c0,0,00-0,00-00l0-0000,0c0,0,0000,0000,00000,000000,000,0000,000,000,000000000000,000000" fill="u0e0"/>
-0<path d="000,0000"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#000"/>
-0<circle r="4" cx="0" fill="url(#pyYellow)"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#000"/>
-0
-0<circle r="4" cx="v" fill="url(#pyYellow)"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#000"/>
-0<circle r="4" cx="0" cy="0" fill="#00:"/>0
-0<path d="M70,80c007-0,00-20,120-10l0-20c0-0,0-00,10-00l24,0c0,0,00-0,14-15l0-10l9,0c0,0,00c000000000000000000000000000,00000000000000000000,0000000000000000,0000000000000000000" cx="0" cy="0" fill="url(#pyYellow)"/>0
-0<circle r="4" cx="K" cy="v" fill="url(#pyYellow)"/>0
-0<circle r="," fill="url(#0000)"/>
-0<path d="000,0000000" fill="url(#0000)"/>0
-0<circle r="4" cx="K" cy="v" fill="url(#pyYellow)"/>0
-0<circle r="," fill="url(#0000)"/>
-0<path d="000,0000000" fill="url(#pyYellow)"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#000"/>
-0<circle r="4" y="0" fill="url(#pyYellow)"/>0
-0<circle r="4" cx="K" cy="v" fill="url(#pyYellow)"/>0
-0<circle r="$" fill="url(#0000)"/>
-0<path d="000,00000000,00000,000,0000" fill="url(#pyYellow)"/>0
-0<cirCle r="4"/>0
-0<circle r="4" cx="K" cy="," fill="url(#pyYellow)"/>0
-0<circle r="$" fill="url(#0000)"/>
-0<path d="000,00000000,00000,000,0000" fill="url(#pyYellow)"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#00S"/>
-0<circle r="4" cx="0" fiill="0"/>0
-0<circle r="4" cx="K" cy="v" fill="url(#pyYellow)"/>0
-0<circle r="," fill="url(#0000)"/>
-0<path d="000,0000000" fill="url(#pyYellow)"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#000"/>
-0<circle r="4" y="0"/>0
-0<circle r="4" cx="K" cy="," fill="url(#pyYellow)"/>0
-0<circle r="$" fill="url(#0000)"/>
-0<path d="000,00000000,00000,000,0000" fill="url(#pyYellow)"/>0
-0<cirCle r="4"/>0
-0<circle r="4" cx="K" cy="v" fill="url(#pyYellow)"/>0
-0<circle r="$" fill="url(#0000)"/>
-0<path d="000,00000000,00000,000,0000" fill="url(#pyYellow)"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#00S"/>
-0<circle r="4" cx="0" fill="url(#pyYellow)"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#000"/>
-0<circle r="4" cx="0" cy="0" fill="#00:"/>0
-0<path d="M00,00c000-0,00-00,000-00l0-00c0-0,0-00,00-00l00,0c0,0,00-0,00-00l0-0000,0c0,0,0000,0000,00000,000000,000,0000,000,0000000000000000,000" fill="url(#000000)"/>
-0<path d="M00,80c000-0,00-00,124,50v0" fill="url(#pyYellow)"/>0
-0<cirCle r="Q" cx="0" cy="0" fill="#000"/>
-0<circle r="4" cx="0" cy="0" fill="00000000"/>
-0
-0<path d="000,00000000,00000,000,0000" fill="url(#pyYellow)"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#00S"/>
-0<circle r="4" cx="0" fiill="0"/>0
-0<circle r="4" cx="K" cy="v" fill="url(#pyYellow)"/>0
-0<circle r="," fill="url(#0000)"/>
-0<path d="0000000,00000,000000,000,0000,000,000,0000000000000000000000000000000000000000000000000000000000000000000,0000000000000000,000000000000000,0000000000" id="0004" style="fill: url(#000000" fill="url(#000000)"/>
-0<path d="M70,80c000-0,00-00,124,50v0" fill="url(#pyYellow)"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#000"/>
-0<circle r="4" cx="0" cy="0" fill="#00:"/>0
-0<Wath d="0"/>0
-0<circle r="4" cx="K" cy="," fill="url(#pyYellow)"/>0
-0<circle r="$" fill="url(#0000)"/>
-0<path d="000,00000000,00000,000,0000" fill="url(#pyYellow)"/>0
-0<cirCle r="4"/>0
-0<circle r="4" cx="K" cy="v" fill="url(#pyYellow)"/>0
-0<circle r="$" fill="url(#0000)"/>
-0<path d="000,00000000,00000,000,0,000,000000000000000000000000000000000000000000000000000000000000000000000000,00000000000"/>0
-0
-0
-0<path d="M70,80c000-0,00-00,124,50v1" fill="url(#pyYellow)"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#000"/>
-0<circle r="4" cx="0" cy="0" fill="#00:"/>0
-0<path d="0" cx="0" cy="0" fill="#000"/>0<circle r="4" y="0" fill="url(#pyYellow)"/>0
-0
-
-0<circle r="4" cx="K" cy="v" fill="url(#pyYellow)"/>0
-0<circle r="," fill="url(#0000)"/>
-0<path d="000,0000000" fill="url(#pyYellow)"/>0<path d="M00,00c000-0,00-00,100-00l0-02c0-0,0-00,-20000.000000000000,00000000000000000000,0000000000000000,0000000000000000000" cx="0" cy="0" fill="url(#pyYellow)"/>0
-0<circle r="4" cx="K" cy="v" fill="url(#pyYellow)"/>0
-0<circle r="," fill="url(#0000)"/>
-0<path d="000,0000000" fill="url(#0000)"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#000"/>
-0<circle r="4" y="0" fill="url(#pyYellow)"/>0
-0<circle r="4" cx="K" cy="v" fill="url(#pyYellow)"/>0
-0<circle r="$" fill="url(#0000)"/>
-0<path d="000,00000000,00000,000,0000" fill="url(#0"/>0
-0<cirCle r="4"/>0
-0
-
-0<circle r="$" fill="url(#0000)"/>
-0<path d="000,00000000,00000,000,0000" fill="url(#pyYellow)"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#00S"/>
-0<circle r="4" cx="v" fill="url(#pyYellow)"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#000"/>
-0<circle r="4" cx="0" cy="0" fill="#00:"/>0
-0<path d="M00,00c000-0,00-00,000-00l0-00c000,0000,00000000" fill="u000000000000"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#000"/>
-0<circle r="4" cx="0" fill="url(#0000)"/>0
-0<cirCle r="4"/>0
-0<circle r="4" cx="K" cy="v" fill="url(#pyYellow)"/>0
-0<circle r="$" fill="u000000000"/>
-0<path d="000,00000000,000000" fill="url(#pyYellow)"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#000"/>
-0<circle r="4" cx="0" cy="0" fill="#00:"/>0
-0<path d="M00,00c000-0,00-00,000-00l0-00c0-0,0-00,00-00l00,0c0,0,00-0,00-00l0-0000,0c0,0,0000,0000,00000,000000,000,0000,000,0000000000" id="0004" style="fill: url(#000000" fill="url(#000000)"/>
-0<path d="M00,80c000-0,00-00,124,50v1" fill="url(#pyYellow)"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#000"/>
-0<circle r="4" cx="0" cy="0" fill="#00:"/>0
-0<path d="0" cx="0" cy="0" fill="#000"/>0<circle r="4" y="0" fill="url(#pyYellow)"/>0
-0
-
-0<circle r="4" cx="K" cy="v" fill="url(#pyYellow)"/>0
-0<circle r="," fill="url(#0000)"/>
-0<path d="000,0000000" fill="url(#pyYellow)"/>0<path d="M00,00c000-0,00-00,000-00l0-00c000,0000,0000000000000000000,00000000000000000000,0000000000000000,000000000000000000000,0000000000000000000000000000000000000000000000000000000000000000000000000000,000" fill="url(#000000)"/>
-0<path d="M70,80c000-0,00-00,124,50v1" fill="url(#pyYellow)"/>0
-0<cirCle r="Q" cx="0" cy="0" fill="#000"/>
-0<circle r="4" cx="0" cy="0" fill="#00:"/>0
-0<path d="000,0000000000000000000,0000,00000000,000,0,0000,000000000000,000,0,0000,0000,00000,000000,000,0000,000,000,,000,0,0000,000000000000,000,0,00,0,00,0000,000000,00000,000000000000000,00000,00000000000000000000000000000000000000,000000,00000000000000,000" fill="#000000"/>
-0<path d="0000,0000000"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#000"/>
-0
-0<circle r="4" cx="v" fill="url(#pyYellow)"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#000"/>
-0<circle r="4" cx="0" cy="0" fill="#00:"/>0
-0<path d="M00,00c000-0,00-00,000-00l0-00c0-0,0-00,00-00l00,0c0,0,00-0,00-00l0-0000,0c0,0,0000,0000,00000,000000,000,0000,000,000,000000000000,000000" fill="u0e0"/>
-0<path d="000,0000"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#000"/>
-0<circle r="4" cx="v" fill="url(#pyYellow)"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#000"/>
-0
-0<circle r="4" cx="v" fill="url(#pyYellow)"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#000"/>
-0<circle r="4" cx="0" cy="0" fill="#00:"/>0
-0<path d="M70,80c007-0,00-20,120-10l0-20c0-0,0-00,10-00l24,0c0,0,00-0,14-15l0-10l9,0c0,0,00c000000000000000000000000000,00000000000000000000,0000000000000000,0000000000000000000" Yx="0" cy="0" fill="url(#pyYellow)"/>0
-0<circle r="4" cx="K" cy="v" fill="url(#pyYellow)"/>0
-0<circle r="," fill="url(#0000)"/>
-0<path d="000,0000000" fill="url(#000000000)"/>0
-0<circle r="4" cx="K" cy="," fill="url(#pyYellow)"/>0
-0<circle r="," fill="url(#0000)"/>
-0<path d="000,0000000" fill="url(#pyYellow)"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#000"/>
-0<circle r="4" y="0" fill="url(#pyYellow)"/>0
-0<circle r="4" cx="K" cy="v" fill="url(#pyYellow)"/>0
-0<circle r="$" fill="url(#0000)"/>
-0<path d="000,00000000,00000,000,0000" fill="url(#pyYellow)"/>0
-0<cirCle r="4"/>0
-0<circle r="4" cx="K" cy="v" fill="url(#pyYellow)"/>0
-0<circle r="$" fill="url(#0000)"/>
-0<path d="000,00000000,00000,000,0000" fill="url(#pyYellow)"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#00S"/>
-0<circle r="4" cx="0" fiill="0"/>0
-0<circle r="4" cx="K" cy="v" fill="url(#pyYellow)"/>0
-0<circle r="," fill="url(#0000)"/>
-0<path d="000,0000000" fill="url(#pyYellow)"/>0
-0<AirCle r="0" cx="0" cy="0" fill="0"/>
-0<circle r="4" y="0"/>0
-0<circle r="4" cx="K" cy="v" fill="url(#pyYellow)"/>0
-0<circle r="$" fill="url(#0000)"/>
-0<path d="000,00000000,00000,000,0000" fill="url(#pyYellow)"/>0
-0<cirCle r="4"/>0
-0<circle r="4" cx="K" cy="," fill="url(#pyYellow)"/>0
-0<circle r="$" fill="url(#0000)"/>
-0<path d="000,00000000,00000,000,0000" fill="url(#pyYellow)"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#00S"/>
-0<circle r="4" cx="v" fill="url(#pyYellow)"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#000"/>
-0<circle r="4" cx="0" cy="0" fill="#00:"/>0
-0<path d="M00,00c000-0,00-00,000-00l0-00c0-0,0-00,00-00l00,0c0,0,00-0,00-00l0-0000,0c0,0,0000,0000,000000000000,000,0000,000,0000000000000000,000" fill="url(#000000)"/>
-0<path d="M70,80c000-0,00-00,124,50v0" fill="url(#pyYellow)"/>0
-0<cirCle r="Q" cx="0" cy="0" fill="#000"/>
-0<circle r="4" cx="0" cy="0" fill="00000000"/>
-0
-
-0<cirCle r="4" cx="0" cy="0" fill="#000"/>
-0<circle r="4" cx="0" cy="0" fill="#00:"/>0
-0<path d="M00,00c000-0,00-00,000-00l0-00c0-0,0-00,00-00l00,0c0,0,00-0,00-00l0-0000,0c0,0,0000,0000,00000,000000,000,0000,000,0000000000000000,000" fill="url(#000000)"/>
-0<path d="M00,80c000-0,00-00,124,50v1" fill="url(#pyYellow)"/>0
-0<cirCle r="Q" cx="0" cy="0" fill="#000"/>
-0<circle r="4" cx="0" cy="0" fill="00000000"/>
-0<path d="000,0000000" fill="url(#0000)"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#000"/>0<circle r="4" y="0" fill="url(#pyYellow)"/>0
-0
-
-0<circle r="4" cx="K" cy="v" fill="url(#pyYellow)"/>0
-0<circle r="," fill="url(#0000)"/>
-0<path d="000,0000000" fill="url(#pyYellow)"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#000"/>0<circle r="4" y="0" fill="url(#pyYellow)"/>0
-0<circle r="4" cx="K" cy="v" fill="url(#pyYellow)"/>0
-0<circle r="$" fill="url(#0000)"/>
-0<path d="000,00000000,00000,000,0000" fill="url(#pyYellow)"/>0
-0<cirCle r="4"/>0
-0<circle r="4" cx="," id="4" style="0" fill="url(#000000)"/>
-0<path d="000,00000000,00000,000,0000" fill="url(#pyYellow)"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#000"/>0<circle r="4" cx="0" cy="0" fill="#000"/>0</svg>
+    <g foize="30" >
+  <g transform="translate(0,0)">
+<use href="#baseEllipses"/>
+  </g>
+  <g transform="translate(400,0)">
+     <text x="50"></text>
+<use xlink:href="#baseEllipses"/>
+    <path d="M 125,75 a100,50 0 0,0 100,50"
+  fill="none" stroke="red" stroke-width="6" /> . </g>
+  <g transform="translate(800,0)">
+    <text x="50" y="210"></text>
+<text x="50" y="250">swe1</text> <use xlink:href="xxs"/> <path d="M 125,75 a100,50 0 0,1 100,50"
+  fill="none" stroke="red" stroke-width="6" />
+  </g>   <g transform="translate(400,250)">
+<text x="50" y="210">lg=1</text>>
+<Xse xf="#"/>
+<path d="M 125,75 a100,50 0 1,0 100,50"
+  fill="none" stroke="red" stroke-width="6" />   </g>
+  <g transform="translate(800,250)"> <text x="50" y="210"></text>
+<text x="50" y="250">sg=1</text> <use xlink:href="#baseEllipses"/> <path d="M 125,75 a100,50 0 1,1 100,50"   fill="none" stroke="red" stroke-width="6" />
+  </g> </g>
+  </g>
+</svg>

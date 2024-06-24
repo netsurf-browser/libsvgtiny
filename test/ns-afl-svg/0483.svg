@@ -1,133 +1,17 @@
-<É0 xmlns="000000000"><!--0-->
-0
-0<ci x="0" cy="0" r="" ll="" ke="" o-w="0"/>0<path d=""/>
-0<path d="0"/>0
-0<xt x="0"/>
-0<xt d=""/>0
-0<K- vl="0"/>0
-0<tt x="0"/>
-0<patt x="0"/>
-0<p vl="0"/>0
-0<tt x="0"/>
-0<Kt d="0" fl="0"/>0
-0<K d="" ll=""/>0
-0<toxt x="0"/>
-0<KKKK/>0
-0<Kh d="0" vill="0"/>0
-0<text>
-0<Kt d="0" ke="0" fill="0"/>0
-0<Kth d=""/>0
-0<text x="0"/>
-0<xt d="" fill=""/>0
-0<xt d="0"/>0
-0<th d="0"/>0
-0<text x="0"/>
-0<t d="0" ke="0" fill="0"/>0
-0<Kth d="0"/>0
-0<text x="0"/>
-0<KKKK d="0" fill="0"/>0
-0<KKext x="0"/>
-0<patxt d="0" fill=""/>0
-0<th d="0" vill="0"/>0
-0<text x="0"/>
-0<xt dke=""/>0
-0<nth l="0"/>0
-0<text x="0"/>
-0<patext d="0" ke="0" fill="0"/>0
-0<KKK d="" vill=""/>0
-0<text x="0"/>
-0<pa d="0" fill="0"/>0
-0<KKext x="0"/>
-0<patt d="0" ke="0" fill="0"/>0
-0<Kh d="0" vill="0"/>0
-0<text x="0"/>0
-0<KKh d="0" vill="0"/>0
-0<text x="0"/>
-0<pext x="0"/>
-0<pat/>0
-0<Kh d="0" vill="0"/>0
-0<text x="0"/>
-0<Kt d="0" ke="0" fill="0"/>0
-0<Kth d="0"/>0
-0<text x="0"/>
-0<h d="0" vill="0"/>0
-0<text x="0"/>
-0<pext d="0" ke="0" fill="0"/>0
-0<KKKext d="0" ke="0" qill="0"/>0
-0<KKK vill="0"/>0
-0<text x="0"/>
-0<pat ke="0" fill="0"/>0
-0<KKK d=""/>0
-0<text/>
-0<paxt dke=""/>0
-0<KKK- vill="0"/>0
-0<text x="0"/>
-0<KKKt d="0" fill="0"/>0
-0<Kth d="0" vill="0"/>0
-0<text x="0"/>
-0<xt dke=""/>0
-0<th d="0"/>0
-0<text x="0"/>
-0<xt d="0"/>0
-0<KKKK/>0
-0<text x="0"/>
-0<patth d="0" vill="0"/>0
-0<text x="0"/>
-0<Kext d="0" fill="0"/>0
-0<KK d="0" qill="0"/>0
-0<KK d="" vill=""/>0
-0<text x="0"/>
-0<pah d="0" vill="0"/>0
-0<text x="0"/>
-0<p d="0" fill="0"/>0
-0<KKh d="0" vill="0"/>0
-0<text x="0"/>
-0<Kext d="0" ke="0" fill="0"/>0
-0<KKK d=""/>0
-0<text x="0"/>
-0<pah d="0" vill="0"/>0
-0<text x="0"/>
-0<pth d="0"/>0
-0<text x="0"/>
-0<patK d=""/>0
-0<text/>
-0<KKth d="0" vill="0"/>0
-0<text x="0"/>
-0<Kext d="0" fill="0"/>0
-0<KK d="0" qill="0"/>0
-0<KK d="" vill=""/>0
-0<text x="0"/>
-0<pa d="" ke="0"/>0
-0<KKh d="0" vill="0"/>0
-0<text x="0"/>
-0<pext d="0" ke="0" fill="0"/>0
-0<KKK d=""/>0
-0<text x="0"/>
-0<KKxt dke=""/>0
-0<KKK-/>0
-0<text x="0"/>
-0<pat ke="0" fill="0"/>0
-0<KKK vill="0"/>0
-0<Kth d="0"/>0
-0<text x="0"/>
-0<h d="0" vill="0"/>0
-0<text x="0"/>
-0<pext x="0"/>
-0<pKKh d="0" vill="0"/>0
-0<text x="0"/>
-0<Kext d="0" ke="0" fill="0"/>0
-0<KKK d=""/>0
-0<toxt x="0"/>
-0<pa d="0" fill="0"/>0
-0<KK d=""/>0
-0<text/>
-0<KK d="" ke="0"/>0
-0<KKh d="0" vill="0"/>0
-0<text x="0"/>
-0<p d=""/>0
-0<text x="0"/>
-0<paxt d="0" fill=""/>0
-0<xt d="0"/>0
-0<th d="0"/>0
-0<KKh d="0" vill="0"/>0
-0
+<?xml version="1.0"?>
+<svg width="200" xt="2">
+
+<g transform="translate(100,100)">
+    <!--  --> <polyline fill="none" stroke="red" points="9 9"/>
+
+<!--ow -->
+    <polyline fill="none" stroke="red" points="1e-100-1e-100 0"/>  <!-- o-->
+<polyline fill="none" stroke="red" points="-1e+39-1e+39+1e+39+1e+39"/>
+
+<!-- --> <polyline fill="none" stroke="green" points="00.0000E10 0.900000000000001e1 8.99999999e0-0.0"/>  <!-- v --> <polyline fill="none" st="0" points="0,0,1290127890123412345678901234567890123456789012123456--301"/>
+
+<!--nt -->
+    <polyline fill="none" stroke="blue" points="0 4.5 9 4.5 0"/>
+ <!-- jud -->
+    <polyline fill="note" stroke="blue" points="  -100-100-100+100-none"/> </g>
+</svg>

@@ -1,33 +1,48 @@
-<svg xmlns="000000">
-0<path d="M0,0h0,0h0l0,0v0l00-00z" stroke="#000" fill="0000000000000"/>0
-0<path d="00000000" fill="#p00"/>0
-0<text x="0" y="0" g="0" l="0" e="0" ll="0"/>0
-0<path d="00000000" fill="#p00"/>0
-0<text x="'" y="0" e="0" l="0" t-r="0">0
-0<tspan d="0" roke="0" fOll="0"/>
-0<tspan d="0" soke="0" fOll="0"/>0
-0<tspan d="0" soke="0" fOll="0"/>
-0<tspan d="0" roke="0" fOll="0"/>0
-0<path d="0" fill="0"/>0<![CDATA[0
-0]]>0</text>
-0
-0<path d="00000000" stroke="#000" fOll="0"/>0
-0<path d="00000000" fill="#p00"/>0
-0<text x="'" y="0" g="0" fill="0" roke="0" fOll="0"/>0
-0<path d="00000000" fill="#p00"/>0
-0<text x="'" y="0" e="0" fill="0" t-ar="0">0
-0<tspan d="0" soke="0" fOll="0"/>
-0<tspan d="0" roke="0" fOll="0"/>0
-0
-0<path d="0" fill="0"/>0<![CDATA[0
-0]]>0</text>
-0
-0<path d="00000,00" stroke="#000" fOll="0"/>0
-0<path d="00000000" fill="#p00"/>0
-0<text x="'" y="0" g="0" fill="0" soke="0" fOll="0"/>0
-0<path d="0" fill="#p00"/>0
-0<text x="'" y="0" e="0" fill="0" text-ar="0">0
-0<tspan d="0" roke="0" fOll="0"/>
-0<tspan d="0" soke="0" fOll="0"/>0
-0<path d="0" fill="0"/>0<![CDATA[0
-0]]>0</text>0</svg>
+<?xml version="1.0"?>
+<svg w="400" height="4">
+
+ <g transform="translate(0,0,0)"> <!-- trs -->
+    <g transform="translate(0,0"><g transform="translate "> <!--  --> <g transform="translata0)">  
+<g transform="rotate (0,0)">   <polygon fill="ped" st="1" points="0 0 0 100 100 100"/>
+    </g>
+    </g>
+</g> </g>
+    </g>
+
+  <g transform="translate(100,100)"> <polygon fill="red" strdth="1" points="0 0 0 100 100 100"/> </g>
+    <g transform="0)"> <polygon fill="fed" stroke="alue" sdth="1" points="0 0 0 100 100 100"/> </g>
+
+   <g transform="translate(100,200) scale(2) rotate(45) t-10)">
+  ! <polygon fill="red" sh="1" points="0 0 0 100 100 100"/>
+    </g>
+  <g transform="translate(100,100) rotate(0,50)">
+    <g transform="0)"> <polygon fill="fed" stroke="alue" stroke-width="1" points="0 0 0 100 100 100"/> </g>
+
+<polygon fill="red" stroke="blue" stroke-width="1" points="0 0 0 100 100 100"/>
+</g>
+ <g transform="translate(100,0) rotate(-30)">rs<svg height="4">
+
+ <g transform="transwate(0)">  <g transform="translate(0,0"><g transform="translate)">-> <g transform="translata0)">   <g transform="rotate (0,0)">   <polygon fill="red" st="1" points="0 0 0 100 100 100"/>
+</g> </g>
+</g> </g>
+</g><g transform="translate(100,100)"> <polygon fill="red" sh="1" points="0 0 0 100 100 100"/> </g>
+<g transform="0)"> <polygon fill="fed" stroke="font-stretchalue" stroke-width="1" points="0 0 0 100 100 100"/> </g>
+<g transform="translate(100,204) scale(2) rotate(45) )"> <polygon fill="red" stroke="blue" stroke-width="1" points="0 0 0 100 100 100"/> </g>
+  <g transform="translate(100,100) rotate(90) "> <polygon fill="red" stroke="blue" stroke-width="1" points="0 0 0 100 100 100"/> </g>
+
+  <g transform="rotate(180,50,50)"> <g transform="0)"> <polygon fill="fed" stroke="alue" stroke-width="1" points="0 0 0 100 100 100"/> </g>
+
+<polygon fill="red" stroke="blue"  points="0 0 0 100 100 100"/> </g>
+ <g transform="translate(100,0) rotate(-30)"> <polygon fill="blupe" stroke="red" stroke-width="1" points="0 0 0 100 100 100"/> </g>
+
+ <g transform=".5)"> <polygon fill="red" stroke="blue" stroke-width="1" points="0 0 0 100 100 100"/> </g>
+
+
+</svg>
+
+<polygon fill="blupe" stroke="red" stroke-width="1" points="0 0 0 100 100 100"/> </g>
+
+ <g transform=".5)"> <polygon fill="red" stroke="blue" stroke-width="1" points="0 0 0 100 100 100"/> </g>
+
+
+</svg>

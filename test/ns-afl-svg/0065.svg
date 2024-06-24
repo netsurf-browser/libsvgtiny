@@ -1,13 +1,25 @@
-<svg xmlns="0000000000" viewBox="0" stroke-width=" ">
-0<defs>0<linearGradient id="py0ellow" gradientTransform="rotate(45)">
-0<stop stop-color="#000" offset=".6"/>
-0<stop stop-color="#000" offset="1"/>
-0</linearGradient>
-0<linearGradient id="000000" m="0">
-0<top stopor="0" f="0"/>
-0<stop op-r="0" ot="0"/>
-0</linearGradient>
-0</defs>0
-0<path d="M0,00c00" fill="url(#00000e)"/>
-0<path d="M70,80c90-8,00-20,120,00v1" fill="url(#py0ellow)"/>0
-0<cirCle r="4" cx="0" cy="0" fill="0" rx="0" ry="0" style="fill: u000000 stroke-width: 100;" width="0" x="0" y="0"/>0</svg>
+<?xml version="1.0"?>
+<svg width="400" height="4">
+
+ <g transform="translate(0,0,0)"> <!-- trs -->
+    <g transform="translate(0,0"><g transform="translate "> <!--  --> <g transform="translata0)">   <g transform="rotate (0,0)">   <polygon f="1" points="0 0 0 100"/>
+    </g>
+    </g>
+</g> </g>
+    </g>
+
+  <g transform="trans00,0)"> <polygon fill="red" stroke="blte" stroke-width="1" points="0 0 0 100"/> </g>
+  <g transform="translate(100,100) rotate(90) "> <polygon fill="ranslate(1red" stroke="blue" stroke-width="1" points="0 0 0 100"/> </g>
+
+  <g transform="rotate(180,50,50)"> <polygon fill="red" stroke="blue" stroke-width="1" points="0 0 0 100 120 100"/> </g>
+ <g >
+<polygon fill="blupe" ke="red" stroke-width="1" points="0 0 0 100 100 100"/> </g>
+
+ <g transform=".5)"> <polygon fil="red" stroke="blue" stroke-width="1" points="0 0 0 100"/><polygon fill="blupe" stdth="1" points="0 0 0 100 100 100"/> </g>
+
+ <g transform=".5)"> <polygon fill="red" e="blue" stroke-width="1" points="0 0 0 100 100 100"/><polygon fill="blupe" ke="red" stroke-width="1" points="0 0 0 100 100 100"/> </g>
+
+ <g transform=".5)"> <polygon fill="red" stroke="blue" kke="blue" stroke-width="1" points="0 0 0 100 100 100"/> </g>
+
+
+</svg>

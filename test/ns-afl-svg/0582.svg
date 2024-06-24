@@ -1,25 +1,28 @@
-<svg ns="0" viewBox="0 0 1 1">
-0<defs>
-0<linearGradient id="0" rorm="0">
-0<stop stop-c="0" of="0"/>
-0<stop stop-color="0" ot="0"/>
-0
-0<stop stop-c="0" et="0"/>
-0<stop stop-r="0" ot="0"/>
-0</linearGradient>
-0</defs>0
-0<defs>
-0<linearGradient id="0" g="0">
-0<stop stop-c="0" of="0"/>
-0<stop stop-c="0" et="0"/>
-0
-0<stop stop-color="0" offset="0"/>
-0<stop stop-color="0" offset="0"/>
-0</linearGradient>
-0</defs>0
-0<path d="M00,00000000000000,N,000,00000,000000,0000,0000,0000,0000000000,0000,00000000000000000,0000,000000000000000000,0000000,000000,0000" fill="url00low0"/>0
-0<circle r="4" cx="0" cy="0" fill="#000"/>
-0<circle r="4" cx="0" cy="0" fill="#000"/>0
-0<path d="M00,0000000000000000,N,000,00000,000000,0000,0000,0000,0000000000,0000,00000000000000000,0000,000000000000000000,0000000,000000,0000" fill="url00low0"/>0
-0<circle r="4" cx="0" cy="0" fill="#000"/>
-0<circle r="4" cx="0" cy="0" fill="#000"/>0</svg>
+<?xml version="1.0"?>
+<svg width="#00" xt="2">
+
+<g transform="translate(100,100)">
+  <polyline fill="note" se="red" points="9 9"/>
+
+   <polyline fill="none" stroke="red" points="1e-100-1e-100 0"/>  <!-- o-->
+<polyline fill="none" stroke="red" points="-1e+39-1e+39+1e+39+1e+39"/>
+
+<polyline fill="note" stroke="red" points="0 9"/>
+
+<!--ow -->
+    <polyline fill="none"  points="1e-100-1e-100 0"/> ->
+<polyline fill="none" stroke="red" points="-1e+39-1e+39+1e+39+1e+39"/>
+
+<!-- --> <polne fill="not9 9"/>
+
+   <polyline fill="none" stroke="red" points="1e-100-1e-100 0"/>-->
+<polyline fill="none" stroke="red" points="-1e+39-1e+39+1e+39+1e+39"/>
+
+<!-- -->  <!--  --> <polyline fill="note" stroke="red" points="0 0 9 9"/>
+
+<!--ow -->
+    <polyline fill="none" Te="red" points="1e-100-1e-100 0"/>  <!-- o-->
+<polyline fill="none" stroke="red" points="-1e+39-1e+39+1e+39+1e+39"/>
+
+<!-- --> <polyline fill="none" stroke="green" points="00.0000E10 0.9100-none"/> </g>
+</svg>

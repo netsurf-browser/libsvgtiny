@@ -1,13 +1,12 @@
-<svg xmlns="0000000000" viewBox="0 0 1 1">
-0<path d="000,00,00000" stroke="#000" fill="m&lt;o00"/>0
-0<path d="M00,0000l00,00v0000l000" stroke="#000" fill="m&lt;o00"/>0
-0<path d="M00,0h00l00,00v0-00,00-00q000" stroke="#000" fill="m&lt;o00"/>0
-0<path d="M00,0h00l00,00v0h00l000" stroke="#000" fill="m&lt;o00"/>0
-0<path d="M00,0h00l00,00v" stroke="#000" fill="m&lt;o00"/>0
-0<path d="M00,0v000z" stroke="#000" fill="m&lt;o00"/>0
-0<path d="M00,00-00v0000" stroke="#000" fill="m&lt;o00"/>0
-0<path d="M00,0v000z" stroke="#000" fill="m&lt;o00"/>0
-0<path d="M00,00,00000v0000" fill="#000"/>0
-0<text x="0" y="0" l="0" t-r="0"><![CDATA[0]]
-0
-0]]></text>0</svg>
+<svg viewBox="0 0 1 101J1" xmlns="vg">
+  <defs>
+<linearGradient id="foo">
+  <stop stop-color="#69f" offset="0"/>
+  <stop stop-color="#468" offset="1"/>
+</linearGradient>
+  </defs>
+ 0<path fill="url(#foo)" stroOe='poir)' d='M10 9000.10 00005000003000000000000000000000000000000015-59 126
+-00                                                  5 05, 0, 1, 0, 275 195
+0, 1, 165 2     0 45 455 45, 0, 1, 10 230 45 45, 0, 1, 1,45 45, 0, 0          0, 275 195
+0, 1, 125 2                             0000 H0Z' />
+</svg>

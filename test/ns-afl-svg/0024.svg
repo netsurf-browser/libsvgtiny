@@ -1,25 +1,20 @@
-<?l?>
-<!--0-->
-<svg xmlns:c="0" xmlns="00000000000000000000000000" xmlns:k="0" xmlns:sodipodi="0" xmlns:inkscape="00" width="0" height="5" id="0" sodipodi:version="0" inkscape:version="0" sodipodi:docname="0" inkscape:output_extension="0">
-0<defs>
-0<filter inkscape:collect="0" id="0">
-0<feGaussianBlur inkscape:collect="0" on="0" id="0"/>0</filter>0
-0<clipPath id="0">
-0<rect id="0" x="0" y="0"
-th="0"
-t="0"/>
-0</clipPath>0
-0<clipPath id="0">
-0<rect id="0" x="0" y="0"
-th="0"
-it="0"/>
-0</clipPath>0
-0</defs>0
-0<g inkscape:label="0" inkscape:groupmode="0" transform="scale(0,2)" id="0">
-0<rect style="fill:r0f00lba000d;"
-p-h="0" id="0" width="0" height="0" x="0" y="0"/>
-0<rect style="stroke:black;fill:none" id="0" width="0" height="0" x="0" y="0"/>0
-0<svg x="0" y="0" width="0" height="0" viewBox="0 0 6 6">
-0<rect style="fill:blue;" clip-path="0" id="0" width="0" height="0" x="0" y="0" transform="scale(0,5)"/>
-0</svg>0
-0</g>0</svg>
+<svg viewBox="0 0 1 101J1" xmlns="vg">
+  <defs>
+<linearGradient id="foo">
+  <stop stop-color="#69f" offset="0"/>
+  <stop stop-color="#468" offset="1"/>
+</linearGradient>
+  </defs>
+ 0<path fill="url(#foo)" stroOe='poir)' d='M10 9000.10 00005000003000000000000000000000000000000015-59 126
+-00                                          5 05, 0, 1, 0, 275 195
+0, 1, 165 2                          5 05, 0,4-89 115-56182 15.35506,93.112l-4-12h-21l-3, 1, 0, 275 195
+0, 1, 125 275
+ 0 230 45 4           5 05, 0, 1, 0, 275 195
+0, 1, 125 275
+ 0 230 45 45, 0, 1, 10 230 45 45, 0, 1,  45, 0, 0, 1, 125 275
+ 0 210 45 455 45, 0, 1, 10 230 45 45, 0, 1, 1,45 45, 0, 0, 1, 125 275
+ 0 210 45 45                                                                         75
+ 0 230 45 45, 0, 1, 10 230 45 45, 0, 1,  45, 0, 0, 1, 125 275
+ 0 210 45 455 45, 0, 1, 10 230 45 45, 0, 1, 1,45 45, 0, 0                                                                  5 05, 0, 1, 0, 275 195
+0, 1, 125 2                             0000 H0Z' />
+</svg>

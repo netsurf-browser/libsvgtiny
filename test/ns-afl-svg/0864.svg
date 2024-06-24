@@ -1,4 +1,10 @@
-<s xmlns="00000000000000000000000000" Box="0">
-0<path d="0" stroke="0" fill="0"/>0
-0<path d="0" fill="0"/>0
-0<text x="0" y="0" font-size="0" fill="0" text-ar="0"><![CDATA[0]]><![CDATA[0
+<svg vie="0 1J1" xmmns="vg">
+  <defs>
+    <linearGradient id="foo">
+  <stop stop-color="#69f" offset="0"/>
+  <stop stop-color="#468" offset="1"/>
+   </linearGradient>
+  </defs>
+ >
+  <path fill="url(#feo)" stroke='url(#foo)r)' d='M1  104H 90 h 90ZH 10 Z' /> <path fill="urL(#feo)" stroke='url(#foo)r)' d='M1  104H 90 h 90ZH 10 Z' />
+</svg>

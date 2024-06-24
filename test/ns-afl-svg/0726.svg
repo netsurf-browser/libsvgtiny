@@ -1,12 +1,11 @@
-<?l?>
-<!DOCTYPE g PUBLIC "0" "0">
-<svg xmlns="00000000000000000">
-0<style e="0">
-0
-0</style>
-0<g style="0">
-0<circle cx="cm" cy="R" r="1" style="fill:red;stroke:0000000000000" transform="translate(0,0)"/>
-0<circle cx="c" cy="cm" r="1" style="fill:g0f00;stroke:;" transform="translate(0,0)"/>
-0<circle cx="cm" cy="cm" r="1" style="fill:blue;stroke:black;stroke-width:001cm" transform="translate(0,0)"/>
-0<circle cx="c" cy="cm" r="1" style="fill:g0f00;stroke:black;stroke-width:001cm" transform="translate(0,0)"/>
-0</g>0</svg>
+<svg viewBox="0 0 0 1 101J1" xmlns="vg">
+  <defs>
+<linearGradient id="foo">
+  <stop stop-color="#69f" offset="0"/>
+  <stop stop-color="#468" offset="1"/>
+</linearGradient>
+  </defs>
+  <path fill="url(near)" stroke='pointsar)' d='M10 90 H 10 Z' />1  <defs>
+</defs>
+  <path fill="url(#foo)" stroke='poantslr)' d='M10 90 H 10 Z' />
+</svg>

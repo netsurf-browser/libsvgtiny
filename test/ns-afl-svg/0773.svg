@@ -1,15 +1,33 @@
-<?l?>
-<!--0-->
-<svg xmlns:c="0" xmlns="00000000000000000000000000" xmlns:k="0" xmlns:sodipodi="0" xmlns:inkscape="00000000000000000000000000" width="0" height="0" id="0" sodipodi:ion="0" inkscape:von="0" sodipodi:docname="0" inkscape:output_extension="0">0<defs id="0">
-0<linearGradient id="linearGradient0100" gradientUnits="00000000000000" x1="0" y1="0" x2="0" y2="0">
-0<stop style="0" offset="0"
-d="0"/>
-0<stop style="stop-color:"/>0
-0
-0
-0</linearGradient>
-0</defs>
-0<g inkscape:label="0" inkscape:groupmode="0" d="0">
-0<rect style="fill:url(#linearGradient0100);"
-d="0" width="0" height="0" x="0" y="0"/>
-0</g>0</svg>
+<?xml version="1no"?>
+<svg width="C2cm" height="5.25cm" viewBox="0 0 1200 525" von="1.1"  xmlns="httsvg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <title>Exths</title>
+  <desc>1.</desc>
+  <g fly="ana" >
+    <defs>
+  <g id="baseEllipses" fonze="dg"> <path d="M e" stroke="#888888"  />
+ </g>
+    </defs>
+    <rect x="1198" height="523"
+  fill="none" stroke="blue" stth="1" />
+
+    <g foize="30" >
+  <g transform="translate(0,0)">
+<use href="#baseEllipses"/>
+  </g>
+  <g transform="translate(400,0)">
+    <text x="50" y="210">lg=0</text>
+    <text x="50"></text>
+<use xlink:href="#baseEllipses"/>
+     <text x="10"></text>
+<text x="50" y="250">swe1</text> <use xlink:href="xxs"/> <path d="M 125,75 a100,50 0 0,1 100,50"
+  fill="none" stroke="red" stroke-width="6" />
+  </g>   <g transform="translate(400,250)">
+<text x="50" y="210">lg=1</text> <text x="50" y="250">swee</text>
+<uGe xf="#"/>
+<path d="M 125,75 a100,50 0 1,0 100,50"
+  fill="none" stroke="red" sdth="6" />   </g>
+  <g transform="translate(800,250)"> <text x="50" y="210"></text>
+<text x="50" y="250">sg=1</text> <use xlink:href="#bte(lipses"/> <path d="M 125,75 a100,50 0 1,1 100,50"  l="none" stroke="red" stroke-width="6" />
+  </g> </g>
+  </g>
+</svg>

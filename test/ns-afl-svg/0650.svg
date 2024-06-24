@@ -1,16 +1,51 @@
-<svg xmlns="00000000000000000000000000" viewBox="0 0 1 1">
-0<path d="M00,0h00l00,00v00l000000000000000000000000000000000000,0-0M00,0000" fill="url(#0000)"/>
-0<path d="M00,00000000,00000,0000000000000000,0000000000000000,0000000000C000000000,00000000000000000000000000000000000000000000000000000000000000000000000,000000000000000,0000000000" id="0" style="fill: urn00rad00" fill="url(#000000)"/>
-0<path d="M00,00c000-0,00-00,000,00v0" fill="url(#000000)"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#000"/>
-0<circle r="4" cx="0" cy="0" fill="#000"/>
-0<path d="M00,00c000-0,00-00,000-00l0-00c0-0,0-00,00-00l00,0c0,0,00-0,00-00l0-00l0,0c0,0000000000000000000 00-00 000-00 0000-00 000-000 000-00-00-00-000 000-0 0000000000000000000000000000000000000000000,000000000000000000,0000000000000000,0000000000C000000000,0000000000000000,0000000000000000,00000000000000000000,0000000000000000,000000000000000,0000000000" id="0" style="fill: urb00rad000" fill="url(#000000)"/>
-0<path d="M00,00c000-0,00-00,000,00,L0,0,00,00c0,00-0,00-00,00l000,0l0,0l00,0l0,0l0,00000000000000000000000000i0000000,0000000,000000000000000,000000000000000000,000000000000000000,0000000000000000,00000000000000000000,0000000000000000,0000000000000000,0000000000000000000000000000000000000,000000000000000,0000000000" id="0" style="fill: url(#r0000" fill="url(#000000)"/>
-0<path d="M00,00c000-0,00-00,000,00v0" fill="url(#00000000)"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#000"/>
-0<circle r="4" cx="0" cy="0" fill="#000"/>0
-0<path d="M00,00c000-0,00-00,000-00l0-00c0-0,0-00,00-00l00,0c0,0,00-0,00-00l0-00l0,0c0,0,00c0,0000,00000,000000,000,0000,000,0,0000000000000000,000000000000000000000000000000000000,0000000000000000,00000000000000000000,0000000000000000,000000000000000,0000000000" id="0" style="fill: urb00rad000" fill="url(#000000)"/>
-0<path d="M00,00c000-0,00-00,000,00,L0,0,00,00c0,00-0,00-00,00l000,0l0,0l00,0l0,0l0,0z M00000000000000000000000000000000-00 0000-00 000-000 000-00-00-00-000 000-0 000000000000000000000000000000000000000000000000000,0000000,000000000000000,00000000000000000000000000000000000,0000000,000000000000000,000000000000000000,000000000000000000,0000000d00000000,00000000000000000000,0000000000000000,0000000000000000,00000000000000000000,0000000000000000,000000000000000,0000000000" id="0" style="fill: urb00rad000" fill="url(#0000)"/>
-0<path d="M00,00c000-0,00-00,000,00v0" fill="url(#00000000)"/>0
-0<cirCle r="4" cx="0" cy="0" fill="#000"/>
-0<circle r="4" cx="0" cy="0" fill="#000"/>0</svg>
+<?xml version="1.0"?>
+<svg w="400" height="4">
+
+ <g transform="translate(0,0,0)"> <!-- trs -->
+    <g transform="translate(0,0"><g transform="translate "> <!--  --> <g transform="translata0)">   <g transform="rotate (0,0)">   <polygon fill="red" st="1" points="0 0 0 100 100 100"/>
+    </g>
+    </g>
+</g> </g>
+    </g>
+
+  <g transform="translate(100,100)"> <polygon fill="red" strdth="1" points="0 0 0 100 100 100"/> </g>
+    <g transform="0)"> <polygon fill="fed" stroke="alue" stroke-width="1" points="0 0 0 100 100 100"/> </g>
+
+   <g transform="translate(100,200) scale(2) rotate(45) t-10)">
+    <polygon fill="red" stroke="blue" stroke-width="1" points="0 0 0 100 100 100"/>
+    </g>
+  <g transform="translate(100,100) rotate(90) "> <polygon fill="red" stroke="blue" stroke-width="1" points="0 0 0 100 100 100"/> </g>
+
+  <g transform="rotate(180,50,50)">
+    <g transform="0)"> <polygon fill="fed" stroke="alue" stroke-width="1" points="0 0 0 100 100 100"/> </g>
+
+<polygon fill="red" stroke="blue" stroke-width="1" points="0 0 0 100 100 100"/>
+</g>
+ <g transform="translate(100,0) rotate(-30)">rs<svg wiCth="400" height="4">
+
+ <g transform="transwate(0)">  <g transform="translate(0,0"><g transform="translate 0,0)">-> <g transform="translata0)">   <g transform="rotate (0,0)">   <polygon fill="red" st="1" points="0 0 0 100 100 100"/>
+</g> </g>
+</g> </g>
+</g><g transform="translate(100,100)"> <polygon fill="red" sh="1" points="0 0 0 100 100 100"/> </g>
+<g transform="0)"> <polygon fill="fed" stroke="alue" stroke-width="1" points="0 0 0 100 100 100"/> </g>
+<g transform="translate(100,200) scale(2) rotate(45) t-10)"> <polygon fill="red" stroke="blue" stroke-width="1" points="0 0 0 100 100 100"/> </g>
+  <g transform="translate(100,100) rotate(90) "> <polygon fill="red" stroke="blue" stroke-width="1" points="0 0 0 100 100 100"/> </g>
+
+  <g transform="rotate(180,50,50)"> <g transform="0)"> <polygon fill="fed" stroke="alue" stroke-width="1" points="0 0 0 100 100 100"/> </g>
+
+<polygon fill="red" stroke="blue"  points="0 0 0 100 100 100"/>
+    </g>
+ <g transform="translate(100,0) rotate(-30)"> <polygon fill="blupe" stroke="red" stroke-width="1" points="0 0 0 100 100 100"/>
+    </g>
+
+ <g transform=".5)"> <polygon fill="red" stroke="blue" stroke-width="1" points="0 0 0 100 100 100"/> </g>
+
+
+</svg>
+
+<polygon fill="blupe" stroke="red" stroke-width="1" points="0 0 0 100 100 100"/> </g>
+
+ <g transform=".5)"> <polygon fill="red" stroke="blue" stroke-width="1" points="0 0 0 100 100 100"/> </g>
+
+
+</svg>
