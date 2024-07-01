@@ -29,16 +29,18 @@ static void svgtiny_invert_matrix(float *m, float *inv);
  * Find a gradient by id and parse it.
  */
 
-void svgtiny_find_gradient(const char *id,
+svgtiny_code svgtiny_find_gradient(const char *id,
+		size_t idlen,
 		struct svgtiny_parse_state_gradient *grad,
 		struct svgtiny_parse_state *state)
 {
 	dom_element *gradient;
 	dom_string *id_str, *name;
 	dom_exception exc;
+	svgtiny_code res = svgtiny_OK;
 
 	#ifdef GRADIENT_DEBUG
-	fprintf(stderr, "svgtiny_find_gradient: id \"%s\"\n", id);
+	fprintf(stderr, "svgtiny_find_gradient: id \"%.*s\"\n", idlen, id);
 	#endif
 
 	grad->linear_gradient_stop_count = 0;
@@ -62,29 +64,28 @@ void svgtiny_find_gradient(const char *id,
 	grad->gradient_transform.e = 0;
 	grad->gradient_transform.f = 0;
 
-	exc = dom_string_create_interned((const uint8_t *) id,
-			strlen(id), &id_str);
+	exc = dom_string_create_interned((const uint8_t *) id, idlen, &id_str);
 	if (exc != DOM_NO_ERR)
-		return;
+		return svgtiny_SVG_ERROR;
 
-	exc = dom_document_get_element_by_id(state->document, id_str,
-					     &gradient);
+	exc = dom_document_get_element_by_id(state->document, id_str, &gradient);
 	dom_string_unref(id_str);
 	if (exc != DOM_NO_ERR || gradient == NULL) {
 		#ifdef GRADIENT_DEBUG
-		fprintf(stderr, "gradient \"%s\" not found\n", id);
+		fprintf(stderr, "gradient \"%.*s\" not found\n", idlen, id);
 		#endif
-		return;
+		return svgtiny_SVG_ERROR;
 	}
 
 	exc = dom_node_get_node_name(gradient, &name);
 	if (exc != DOM_NO_ERR) {
 		dom_node_unref(gradient);
-		return;
+		return svgtiny_SVG_ERROR;
 	}
 
-	if (dom_string_isequal(name, state->interned_linearGradient))
-		svgtiny_parse_linear_gradient(gradient, grad, state);
+	if (dom_string_isequal(name, state->interned_linearGradient)) {
+		res = svgtiny_parse_linear_gradient(gradient, grad, state);
+	}
 
 	dom_node_unref(gradient);
 	dom_string_unref(name);
@@ -93,6 +94,8 @@ void svgtiny_find_gradient(const char *id,
 	fprintf(stderr, "linear_gradient_stop_count %i\n",
 			grad->linear_gradient_stop_count);
 	#endif
+
+	return res;
 }
 
 
@@ -114,10 +117,10 @@ svgtiny_code svgtiny_parse_linear_gradient(dom_element *linear,
 	exc = dom_element_get_attribute(linear, state->interned_href, &attr);
 	if (exc == DOM_NO_ERR && attr != NULL) {
 		if (dom_string_data(attr)[0] == (uint8_t) '#') {
-			char *s = strndup(dom_string_data(attr) + 1,
-					  dom_string_byte_length(attr) - 1);
-			svgtiny_find_gradient(s, grad, state);
-			free(s);
+			svgtiny_find_gradient(dom_string_data(attr) + 1,
+					      dom_string_byte_length(attr) - 1,
+					      grad,
+					      state);
 		}
 		dom_string_unref(attr);
 	}
@@ -216,7 +219,8 @@ svgtiny_code svgtiny_parse_linear_gradient(dom_element *linear,
 							state->interned_stop_color,
 							&attr);
 			if (exc == DOM_NO_ERR && attr != NULL) {
-				svgtiny_parse_color(attr, &color, NULL, state);
+				svgtiny_parse_color(dom_string_data(attr),
+				    dom_string_byte_length(attr), &color);
 				dom_string_unref(attr);
 			}
 			exc = dom_element_get_attribute(stop,
@@ -237,10 +241,9 @@ svgtiny_code svgtiny_parse_linear_gradient(dom_element *linear,
 						&value);
 					if (exc == DOM_NO_ERR &&
 					    value != NULL) {
-						svgtiny_parse_color(value,
-								    &color,
-								    NULL,
-								    state);
+						svgtiny_parse_color(dom_string_data(value),
+								    dom_string_byte_length(value),
+								    &color);
 						dom_string_unref(value);
 					}
 				}

@@ -74,9 +74,6 @@ struct svgtiny_parse_state {
 struct svgtiny_list;
 
 /* svgtiny.c */
-void svgtiny_parse_color(dom_string *s, svgtiny_colour *c,
-		struct svgtiny_parse_state_gradient *grad,
-		struct svgtiny_parse_state *state);
 struct svgtiny_shape *svgtiny_add_shape(struct svgtiny_parse_state *state);
 void svgtiny_transform_path(float *p, unsigned int n,
 		struct svgtiny_parse_state *state);
@@ -95,9 +92,16 @@ svgtiny_code svgtiny_parse_length(const char *text, size_t textlen,
 		int viewport_size, float *length);
 svgtiny_code svgtiny_parse_transform(const char *text, size_t textlen,
 		struct svgtiny_transformation_matrix *tm);
+svgtiny_code svgtiny_parse_paint(const char *text, size_t textlen,
+		struct svgtiny_parse_state_gradient *grad,
+		struct svgtiny_parse_state *state,
+		svgtiny_colour *c);
+svgtiny_code svgtiny_parse_color(const char *text, size_t textlen,
+		svgtiny_colour *c);
 
 /* svgtiny_gradient.c */
-void svgtiny_find_gradient(const char *id,
+svgtiny_code svgtiny_find_gradient(const char *id,
+		size_t idlen,
 		struct svgtiny_parse_state_gradient *grad,
 		struct svgtiny_parse_state *state);
 svgtiny_code svgtiny_add_path_linear_gradient(float *p, unsigned int n,
