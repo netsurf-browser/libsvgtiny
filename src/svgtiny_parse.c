@@ -24,6 +24,15 @@
 /**
  * parse text string into a float
  *
+ * \param[in] text string to parse
+ * \param[in,out] textend On input is the end of the string in \a text. Output
+ *                        is set to indicate the character after those used to
+ *                        parse the number.
+ * \param[out] value The resulting value from the parse
+ * \return svgtiny_OK and the value updated else svgtiny_SVG_ERROR and value
+ *         left unchanged. The textend is always updated to indicate the last
+ *         character parsed.
+ *
  * A number is started by 0 (started by sign) or more spaces (0x20), tabs (0x09),
  * carridge returns (0xD) and newlines (0xA) followed by a decimal number.
  * A number is defined as https://www.w3.org/TR/css-syntax-3/#typedef-number-token
@@ -46,16 +55,8 @@
  * the input correctly.
  */
 static svgtiny_code
-svgtiny_parse_number(const char *text,
-		     size_t textlen,
-		     const char **textend,
-		     float *value)
+parse_number(const char *text, const char **textend, float *value)
 {
-	enum b10sign {
-		SPOSITIVE,
-		SNEGATIVE,
-	};
-	const char *dataend;
 	const char *cur; /* text cursor */
 	enum {
 		STATE_WHITESPACE, /* processing whitespace */
@@ -64,6 +65,10 @@ svgtiny_parse_number(const char *text,
 		STATE_SIGNEXPONENT, /* processing exponent part */
 		STATE_EXPONENT, /* processing exponent part have seen sign */
 	} state = STATE_WHITESPACE;
+	enum b10sign {
+		SPOSITIVE,
+		SNEGATIVE,
+	};
 	enum b10sign sign = SPOSITIVE; /* sign of number being constructed */
 	unsigned int significand = 0; /* significand of number being constructed */
 	int exponent = 0; /* exponent of the significand (distinct from exponent part) */
@@ -71,9 +76,8 @@ svgtiny_parse_number(const char *text,
 	unsigned int exp_value = 0; /* value of the exponent part */
 	unsigned int digit_count = 0; /* has an actual digit been seen */
 
-	dataend = text + textlen;
 
-	for (cur=text; cur < dataend ; cur++) {
+	for (cur = text; cur < (*textend); cur++) {
 		switch (state) {
 		case STATE_WHITESPACE:
 			switch (*cur) {
@@ -233,7 +237,7 @@ svgtiny_parse_number_end:
 		return svgtiny_SVG_ERROR;
 	}
 
-	if (digit_count==0) {
+	if (digit_count == 0) {
 		/* number had no digits (only +-.) which is a syntax error */
 		return svgtiny_SVG_ERROR;
 	}
@@ -355,146 +359,6 @@ static inline void advance_id(const char **cursor, const char *textend)
 }
 
 
-/**
- * parse text points into path points
- *
- * \param data Source text to parse
- * \param datalen Length of source text
- * \param pointv output vector of path elements.
- * \param pointc on input has number of path elements in pointv on exit has
- *               the number of elements placed in the output vector.
- * \return svgtiny_OK on success else error code.
- *
- * parses a poly[line|gon] points text into a series of path elements.
- * The syntax is defined in https://www.w3.org/TR/SVG11/shapes.html#PointsBNF or
- * https://svgwg.org/svg2-draft/shapes.html#DataTypePoints
- *
- * This is a series of numbers separated by 0 (started by sign)
- * or more tabs (0x9), spaces (0x20), carrige returns (0xD) and newlines (0xA)
- * there may also be a comma in the separating whitespace after the preamble
- * A number is defined as https://www.w3.org/TR/css-syntax-3/#typedef-number-token
- *
- */
-svgtiny_code
-svgtiny_parse_poly_points(const char *text,
-			  size_t textlen,
-			  float *pointv,
-			  unsigned int *pointc)
-{
-	const char *textend = text + textlen;
-	const char *numberend = NULL;
-	const char *cursor = text; /* text cursor */
-	int even = 0; /* is the current point even */
-	float point = 0; /* the odd point of the coordinate pair */
-	float oddpoint = 0;
-	svgtiny_code err;
-
-	*pointc = 0;
-
-	while (cursor < textend) {
-		err = svgtiny_parse_number(cursor,
-					   textend - cursor,
-					   &numberend,
-					   &point);
-		if (err != svgtiny_OK) {
-			break;
-		}
-		cursor = numberend;
-
-		if (even) {
-			even = 0;
-			pointv[(*pointc)++] = svgtiny_PATH_LINE;
-			pointv[(*pointc)++] = oddpoint;
-			pointv[(*pointc)++] = point;
-		} else {
-			even = 1;
-			oddpoint=point;
-		}
-
-		/* advance cursor past whitespace (or comma) */
-		advance_comma_whitespace(&cursor, textend);
-	}
-
-	return svgtiny_OK;
-}
-
-
-/**
- * Parse a length as a number of pixels.
- */
-svgtiny_code
-svgtiny_parse_length(const char *text,
-		     size_t textlen,
-		     int viewport_size,
-		     float *length)
-{
-	svgtiny_code err;
-	float number;
-	const char *unit = NULL;
-	int unitlen;
-	float font_size = 20; /*css_len2px(&state.style.font_size.value.length, 0);*/
-
-	err = svgtiny_parse_number(text, textlen, &unit, &number);
-	if (err != svgtiny_OK) {
-		unitlen = -1;
-	} else {
-		unitlen = (text + textlen) - unit;
-	}
-
-	/* discount whitespace on the end of the unit */
-	while(unitlen > 0) {
-		if ((unit[unitlen - 1] != 0x20) &&
-		    (unit[unitlen - 1] != 0x09) &&
-		    (unit[unitlen - 1] != 0x0A) &&
-		    (unit[unitlen - 1] != 0x0D)) {
-			break;
-		}
-		unitlen--;
-	}
-
-	/* decode the unit */
-	*length = 0;
-	switch (unitlen) {
-	case 0:
-		/* no unit, assume pixels */
-		*length = number;
-		break;
-	case 1:
-		if (unit[0] == '%') {
-			/* percentage of viewport */
-			*length = number / 100.0 * viewport_size;
-		}
-		break;
-
-	case 2:
-		if (unit[0] == 'e' && unit[1] == 'm') {
-			*length = number * font_size;
-		} else if (unit[0] == 'e' && unit[1] == 'x') {
-			*length = number / 2.0 * font_size;
-		} else if (unit[0] == 'p' && unit[1] == 'x') {
-			*length = number;
-		} else if (unit[0] == 'p' && unit[1] == 't') {
-			*length = number * 1.25;
-		} else if (unit[0] == 'p' && unit[1] == 'c') {
-			*length = number * 15.0;
-		} else if (unit[0] == 'm' && unit[1] == 'm') {
-			*length = number * 3.543307;
-		} else if (unit[0] == 'c' && unit[1] == 'm') {
-			*length = number * 35.43307;
-		} else if (unit[0] == 'i' && unit[1] == 'n') {
-			*length = number * 90;
-		}
-		break;
-
-	default:
-		/* unknown unit */
-		break;
-	}
-
-	return svgtiny_OK;
-}
-
-
 enum transform_type {
 	TRANSFORM_UNK,
 	TRANSFORM_MATRIX,
@@ -504,6 +368,7 @@ enum transform_type {
 	TRANSFORM_SKEWX,
 	TRANSFORM_SKEWY,
 };
+
 
 static inline svgtiny_code
 apply_transform(enum transform_type transform,
@@ -696,10 +561,8 @@ parse_transform_parameters(const char **cursor,
 	param_max = *paramc;
 
 	for(param_idx = 0; param_idx < param_max; param_idx++) {
-		err = svgtiny_parse_number(*cursor,
-					   textend - (*cursor),
-					   &tokend,
-					   &paramv[param_idx]);
+		tokend = textend;
+		err = parse_number(*cursor, &tokend, &paramv[param_idx]);
 		if (err != svgtiny_OK) {
 			/* failed to parse number */
 			return err;
@@ -737,131 +600,6 @@ parse_transform_parameters(const char **cursor,
 	}
 	/* too many parameters for transform given */
 	return svgtiny_SVG_ERROR;
-}
-
-
-/**
- * Parse and apply a transform attribute.
- *
- * https://www.w3.org/TR/SVG11/coords.html#TransformAttribute
- *
- * parse transforms into transform matrix
- * | a c e |
- * | b d f |
- * | 0 0 1 |
- *
- * transforms to parse are:
- *
- * matrix(a b c d e f)
- *     | a c e |
- *     | b d f |
- *     | 0 0 1 |
- *
- * translate(e f)
- *     | 1 0 e |
- *     | 0 1 f |
- *     | 0 0 1 |
- *
- * translate(e)
- *     | 1 0 e |
- *     | 0 1 0 |
- *     | 0 0 1 |
- *
- * scale(a d)
- *     | a 0 0 |
- *     | 0 d 0 |
- *     | 0 0 1 |
- *
- * scale(a)
- *     | a 0 0 |
- *     | 0 1 0 |
- *     | 0 0 1 |
- *
- * rotate(ang x y)
- *     | cos(ang) -sin(ang) (-x * cos(ang) + y * sin(ang) + x) |
- *     | sin(ang)  cos(ang) (-x * sin(ang) - y * cos(ang) + y) |
- *     | 0        0         1                                  |
- *
- * rotate(ang)
- *     | cos(ang) -sin(ang) 0 |
- *     | sin(ang)  cos(ang) 0 |
- *     | 0         0        1 |
- *
- * skewX(ang)
- *     | 1 tan(ang) 0 |
- *     | 0 1        0 |
- *     | 0 0        1 |
- *
- * skewY(ang)
- *     | 1        0 0 |
- *     | tan(ang) 1 0 |
- *     | 0        0 1 |
- *
- *
- */
-svgtiny_code
-svgtiny_parse_transform(const char *text,
-			size_t textlen,
-			struct svgtiny_transformation_matrix *tm)
-{
-	const char *cursor = text; /* text cursor */
-	const char *textend = text + textlen;
-	enum transform_type transform = TRANSFORM_UNK;
-	/* mapping of maimum number of parameters for each transform */
-	const int param_max[]={0,6,2,2,3,1,1};
-	const char *paramend;
-	int paramc;
-	float paramv[6];
-	svgtiny_code err;
-
-	/* advance cursor past optional whitespace */
-	advance_whitespace(&cursor, textend);
-
-	/* zero or more transform followed by whitespace or comma */
-	while (cursor < textend) {
-		err = parse_transform_function(&cursor, textend, &transform);
-		if (err != svgtiny_OK) {
-			/* invalid transform */
-			goto transform_parse_complete;
-		}
-
-		/* advance cursor past optional whitespace */
-		advance_whitespace(&cursor, textend);
-
-		/* open parentheses */
-		if (*cursor != 0x28 /* ( */) {
-			/* invalid syntax */
-			goto transform_parse_complete;
-		}
-		cursor++;
-
-		paramc=param_max[transform];
-		err = parse_transform_parameters(&cursor, textend, &paramc, paramv);
-		if (err != svgtiny_OK) {
-			/* invalid parameters */
-			goto transform_parse_complete;
-		}
-		paramend = cursor;
-
-		/* have transform type and at least one parameter */
-
-		/* apply transform */
-		err = apply_transform(transform, paramc, paramv, tm);
-		if (err != svgtiny_OK) {
-			/* transform failed */
-			goto transform_parse_complete;
-		}
-
-		/* advance cursor past whitespace (or comma) */
-		advance_comma_whitespace(&cursor, textend);
-		if (cursor == paramend) {
-			/* no comma or whitespace between transforms */
-			goto transform_parse_complete;
-		}
-	}
-
-transform_parse_complete:
-	return svgtiny_OK;
 }
 
 
@@ -987,10 +725,11 @@ parse_color_function(const char **cursorout,
 		/* only function currently supported is rgb */
 		return svgtiny_SVG_ERROR;
 	}
-	cursor+=4;
+	cursor += 4;
 
 	for (idx = 0; idx < 4; idx++) {
-		res = svgtiny_parse_number(cursor, textend - cursor, &argend, &argf[idx]);
+		argend = textend;
+		res = parse_number(cursor, &argend, &argf[idx]);
 		if (res != svgtiny_OK) {
 			break;
 		}
@@ -1117,6 +856,270 @@ parse_paint_url(const char **cursorout,
 	}
 
 	return res;
+}
+
+
+/**
+ * parse text points into path points
+ *
+ * \param data Source text to parse
+ * \param datalen Length of source text
+ * \param pointv output vector of path elements.
+ * \param pointc on input has number of path elements in pointv on exit has
+ *               the number of elements placed in the output vector.
+ * \return svgtiny_OK on success else error code.
+ *
+ * parses a poly[line|gon] points text into a series of path elements.
+ * The syntax is defined in https://www.w3.org/TR/SVG11/shapes.html#PointsBNF or
+ * https://svgwg.org/svg2-draft/shapes.html#DataTypePoints
+ *
+ * This is a series of numbers separated by 0 (started by sign)
+ * or more tabs (0x9), spaces (0x20), carrige returns (0xD) and newlines (0xA)
+ * there may also be a comma in the separating whitespace after the preamble
+ * A number is defined as https://www.w3.org/TR/css-syntax-3/#typedef-number-token
+ *
+ */
+svgtiny_code
+svgtiny_parse_poly_points(const char *text,
+			  size_t textlen,
+			  float *pointv,
+			  unsigned int *pointc)
+{
+	const char *textend = text + textlen;
+	const char *numberend = NULL;
+	const char *cursor = text; /* text cursor */
+	int even = 0; /* is the current point even */
+	float point = 0; /* the odd point of the coordinate pair */
+	float oddpoint = 0;
+	svgtiny_code err;
+
+	*pointc = 0;
+
+	while (cursor < textend) {
+		numberend=textend;
+		err = parse_number(cursor, &numberend, &point);
+		if (err != svgtiny_OK) {
+			break;
+		}
+		cursor = numberend;
+
+		if (even) {
+			even = 0;
+			pointv[(*pointc)++] = svgtiny_PATH_LINE;
+			pointv[(*pointc)++] = oddpoint;
+			pointv[(*pointc)++] = point;
+		} else {
+			even = 1;
+			oddpoint=point;
+		}
+
+		/* advance cursor past whitespace (or comma) */
+		advance_comma_whitespace(&cursor, textend);
+	}
+
+	return svgtiny_OK;
+}
+
+
+/**
+ * Parse a length as a number of pixels.
+ */
+svgtiny_code
+svgtiny_parse_length(const char *text,
+		     size_t textlen,
+		     int viewport_size,
+		     float *length)
+{
+	svgtiny_code err;
+	float number;
+	const char *unit;
+	int unitlen;
+	float font_size = 20; /*css_len2px(&state.style.font_size.value.length, 0);*/
+
+	unit = text + textlen;
+	err = parse_number(text, &unit, &number);
+	if (err != svgtiny_OK) {
+		unitlen = -1;
+	} else {
+		unitlen = (text + textlen) - unit;
+	}
+
+	/* discount whitespace on the end of the unit */
+	while(unitlen > 0) {
+		if ((unit[unitlen - 1] != 0x20) &&
+		    (unit[unitlen - 1] != 0x09) &&
+		    (unit[unitlen - 1] != 0x0A) &&
+		    (unit[unitlen - 1] != 0x0D)) {
+			break;
+		}
+		unitlen--;
+	}
+
+	/* decode the unit */
+	*length = 0;
+	switch (unitlen) {
+	case 0:
+		/* no unit, assume pixels */
+		*length = number;
+		break;
+	case 1:
+		if (unit[0] == '%') {
+			/* percentage of viewport */
+			*length = number / 100.0 * viewport_size;
+		}
+		break;
+
+	case 2:
+		if (unit[0] == 'e' && unit[1] == 'm') {
+			*length = number * font_size;
+		} else if (unit[0] == 'e' && unit[1] == 'x') {
+			*length = number / 2.0 * font_size;
+		} else if (unit[0] == 'p' && unit[1] == 'x') {
+			*length = number;
+		} else if (unit[0] == 'p' && unit[1] == 't') {
+			*length = number * 1.25;
+		} else if (unit[0] == 'p' && unit[1] == 'c') {
+			*length = number * 15.0;
+		} else if (unit[0] == 'm' && unit[1] == 'm') {
+			*length = number * 3.543307;
+		} else if (unit[0] == 'c' && unit[1] == 'm') {
+			*length = number * 35.43307;
+		} else if (unit[0] == 'i' && unit[1] == 'n') {
+			*length = number * 90;
+		}
+		break;
+
+	default:
+		/* unknown unit */
+		break;
+	}
+
+	return svgtiny_OK;
+}
+
+
+/**
+ * Parse and apply a transform attribute.
+ *
+ * https://www.w3.org/TR/SVG11/coords.html#TransformAttribute
+ *
+ * parse transforms into transform matrix
+ * | a c e |
+ * | b d f |
+ * | 0 0 1 |
+ *
+ * transforms to parse are:
+ *
+ * matrix(a b c d e f)
+ *     | a c e |
+ *     | b d f |
+ *     | 0 0 1 |
+ *
+ * translate(e f)
+ *     | 1 0 e |
+ *     | 0 1 f |
+ *     | 0 0 1 |
+ *
+ * translate(e)
+ *     | 1 0 e |
+ *     | 0 1 0 |
+ *     | 0 0 1 |
+ *
+ * scale(a d)
+ *     | a 0 0 |
+ *     | 0 d 0 |
+ *     | 0 0 1 |
+ *
+ * scale(a)
+ *     | a 0 0 |
+ *     | 0 1 0 |
+ *     | 0 0 1 |
+ *
+ * rotate(ang x y)
+ *     | cos(ang) -sin(ang) (-x * cos(ang) + y * sin(ang) + x) |
+ *     | sin(ang)  cos(ang) (-x * sin(ang) - y * cos(ang) + y) |
+ *     | 0        0         1                                  |
+ *
+ * rotate(ang)
+ *     | cos(ang) -sin(ang) 0 |
+ *     | sin(ang)  cos(ang) 0 |
+ *     | 0         0        1 |
+ *
+ * skewX(ang)
+ *     | 1 tan(ang) 0 |
+ *     | 0 1        0 |
+ *     | 0 0        1 |
+ *
+ * skewY(ang)
+ *     | 1        0 0 |
+ *     | tan(ang) 1 0 |
+ *     | 0        0 1 |
+ *
+ *
+ */
+svgtiny_code
+svgtiny_parse_transform(const char *text,
+			size_t textlen,
+			struct svgtiny_transformation_matrix *tm)
+{
+	const char *cursor = text; /* text cursor */
+	const char *textend = text + textlen;
+	enum transform_type transform = TRANSFORM_UNK;
+	/* mapping of maimum number of parameters for each transform */
+	const int param_max[]={0,6,2,2,3,1,1};
+	const char *paramend;
+	int paramc;
+	float paramv[6];
+	svgtiny_code err;
+
+	/* advance cursor past optional whitespace */
+	advance_whitespace(&cursor, textend);
+
+	/* zero or more transform followed by whitespace or comma */
+	while (cursor < textend) {
+		err = parse_transform_function(&cursor, textend, &transform);
+		if (err != svgtiny_OK) {
+			/* invalid transform */
+			goto transform_parse_complete;
+		}
+
+		/* advance cursor past optional whitespace */
+		advance_whitespace(&cursor, textend);
+
+		/* open parentheses */
+		if (*cursor != 0x28 /* ( */) {
+			/* invalid syntax */
+			goto transform_parse_complete;
+		}
+		cursor++;
+
+		paramc=param_max[transform];
+		err = parse_transform_parameters(&cursor, textend, &paramc, paramv);
+		if (err != svgtiny_OK) {
+			/* invalid parameters */
+			goto transform_parse_complete;
+		}
+		paramend = cursor;
+
+		/* have transform type and at least one parameter */
+
+		/* apply transform */
+		err = apply_transform(transform, paramc, paramv, tm);
+		if (err != svgtiny_OK) {
+			/* transform failed */
+			goto transform_parse_complete;
+		}
+
+		/* advance cursor past whitespace (or comma) */
+		advance_comma_whitespace(&cursor, textend);
+		if (cursor == paramend) {
+			/* no comma or whitespace between transforms */
+			goto transform_parse_complete;
+		}
+	}
+
+transform_parse_complete:
+	return svgtiny_OK;
 }
 
 
