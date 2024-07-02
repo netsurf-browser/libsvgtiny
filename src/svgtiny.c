@@ -766,19 +766,11 @@ svgtiny_code svgtiny_parse_svg(dom_element *svg,
 	}
 
 	if (view_box) {
-		char *s = strndup(dom_string_data(view_box),
-				  dom_string_byte_length(view_box));
-		float min_x, min_y, vwidth, vheight;
-		if (sscanf(s, "%f,%f,%f,%f",
-				&min_x, &min_y, &vwidth, &vheight) == 4 ||
-				sscanf(s, "%f %f %f %f",
-				&min_x, &min_y, &vwidth, &vheight) == 4) {
-			state.ctm.a = (float) state.viewport_width / vwidth;
-			state.ctm.d = (float) state.viewport_height / vheight;
-			state.ctm.e += -min_x * state.ctm.a;
-			state.ctm.f += -min_y * state.ctm.d;
-		}
-		free(s);
+		svgtiny_parse_viewbox(dom_string_data(view_box),
+				      dom_string_byte_length(view_box),
+				      state.viewport_width,
+				      state.viewport_height,
+				      &state.ctm);
 		dom_string_unref(view_box);
 	}
 

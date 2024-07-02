@@ -1208,3 +1208,60 @@ svgtiny_parse_color(const char *text, size_t textlen, svgtiny_colour *c)
 	*c = svgtiny_RGB(0, 0, 0);
 	return svgtiny_SVG_ERROR;
 }
+
+/**
+ * parse a viewbox attribute
+ *
+ * https://www.w3.org/TR/SVG11/coords.html#ViewBoxAttribute
+ * https://www.w3.org/TR/SVG2/coords.html#ViewBoxAttribute
+ *
+ * <min-x>,? <min-y>,? <width>,? <height>
+ */
+svgtiny_code
+svgtiny_parse_viewbox(const char *text,
+		      size_t textlen,
+		      float viewport_width,
+		      float viewport_height,
+		      struct svgtiny_transformation_matrix *tm)
+{
+	const char *cursor = text; /* text cursor */
+	const char *textend = text + textlen;
+	const char *paramend;
+	float paramv[4];
+	int paramidx = 0;
+	svgtiny_code res;
+
+	/* advance cursor past optional whitespace */
+	advance_whitespace(&cursor, textend);
+
+	for (paramidx = 0; paramidx < 3; paramidx++) {
+		paramend = textend;
+		res = parse_number(cursor, &paramend, &paramv[paramidx]);
+		if (res != svgtiny_OK) {
+			/* failed to parse number */
+			return res;
+		}
+		cursor = paramend;
+		advance_comma_whitespace(&cursor, textend);
+	}
+	paramend = textend;
+	res = parse_number(cursor, &paramend, &paramv[paramidx]);
+	if (res != svgtiny_OK) {
+		/* failed to parse number */
+		return res;
+	}
+	cursor = paramend;
+	advance_whitespace(&cursor, textend);
+
+	if (cursor != textend) {
+		/* syntax error */
+		return svgtiny_SVG_ERROR;
+	}
+
+	tm->a = (float)viewport_width / paramv[2];
+	tm->d = (float)viewport_height / paramv[3];
+	tm->e += -paramv[0] * tm->a;
+	tm->f += -paramv[1] * tm->d;
+
+	return svgtiny_OK;
+}

@@ -98,6 +98,9 @@ svgtiny_code svgtiny_parse_paint(const char *text, size_t textlen,
 		svgtiny_colour *c);
 svgtiny_code svgtiny_parse_color(const char *text, size_t textlen,
 		svgtiny_colour *c);
+svgtiny_code svgtiny_parse_viewbox(const char *text, size_t textlen,
+		float viewport_width, float viewport_height,
+		struct svgtiny_transformation_matrix *tm);
 
 /* svgtiny_gradient.c */
 svgtiny_code svgtiny_find_gradient(const char *id,
