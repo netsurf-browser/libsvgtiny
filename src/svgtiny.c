@@ -1870,37 +1870,33 @@ void svgtiny_parse_paint_attributes(dom_element *node,
 		dom_string_unref(attr);
 	}
 
+	/* style attribute */
 	exc = dom_element_get_attribute(node, state->interned_style, &attr);
 	if (exc == DOM_NO_ERR && attr != NULL) {
-		char *style = strndup(dom_string_data(attr),
-				      dom_string_byte_length(attr));
-		const char *s;
-		if ((s = strstr(style, "fill:"))) {
-			s += 5;
-			svgtiny_parse_paint(s,
-					    strcspn(s, "; "),
-					    &state->fill_grad,
-					    state,
-					    &state->fill);
-		}
-		if ((s = strstr(style, "stroke:"))) {
-			s += 7;
-			svgtiny_parse_paint(s,
-					    strcspn(s, "; "),
-					    &state->stroke_grad,
-					    state,
-					    &state->stroke);
-		}
-		if ((s = strstr(style, "stroke-width:"))) {
-			float stroke_width;
-			s += 13;
-			svgtiny_parse_length(s,
-					     strcspn(s, "; "),
-					     state->viewport_width,
-					     &stroke_width);
-			state->stroke_width = stroke_width;
-		}
-		free(style);
+		struct svgtiny_parse_inline_style_op styles[]={
+			{
+				state->interned_fill,
+				ISTYLEOP_PAINT,
+				&state->fill_grad,
+				&state->fill
+			}, {
+				state->interned_stroke,
+				ISTYLEOP_PAINT,
+				&state->stroke_grad,
+				&state->stroke
+			}, {
+				state->interned_stroke_width,
+				ISTYLEOP_INTLENGTH,
+				&state->viewport_width,
+				&state->stroke_width
+			},{
+				NULL, ISTYLEOP_NONE, NULL, NULL
+			},
+		};
+		svgtiny_parse_inline_style(dom_string_data(attr),
+					   dom_string_byte_length(attr),
+					   state,
+					   styles);
 		dom_string_unref(attr);
 	}
 }

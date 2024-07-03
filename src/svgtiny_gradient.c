@@ -227,27 +227,20 @@ svgtiny_code svgtiny_parse_linear_gradient(dom_element *linear,
 							state->interned_style,
 							&attr);
 			if (exc == DOM_NO_ERR && attr != NULL) {
-				char *content = strndup(dom_string_data(attr),
-							dom_string_byte_length(attr));
-				const char *s;
-				dom_string *value;
-				if ((s = strstr(content, "stop-color:"))) {
-					s += 11;
-					while (*s == ' ')
-						s++;
-					exc = dom_string_create_interned(
-						(const uint8_t *) s,
-						strcspn(s, "; "),
-						&value);
-					if (exc == DOM_NO_ERR &&
-					    value != NULL) {
-						svgtiny_parse_color(dom_string_data(value),
-								    dom_string_byte_length(value),
-								    &color);
-						dom_string_unref(value);
-					}
-				}
-				free(content);
+				struct svgtiny_parse_inline_style_op styles[]={
+					{
+						state->interned_stop_color,
+						ISTYLEOP_COLOR,
+						NULL,
+						&color
+					},{
+						NULL, ISTYLEOP_NONE, NULL, NULL
+					},
+				};
+				svgtiny_parse_inline_style(dom_string_data(attr),
+							   dom_string_byte_length(attr),
+							   state,
+							   styles);
 				dom_string_unref(attr);
 			}
 			if (offset != -1 && color != svgtiny_TRANSPARENT) {

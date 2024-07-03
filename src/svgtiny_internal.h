@@ -73,6 +73,24 @@ struct svgtiny_parse_state {
 
 struct svgtiny_list;
 
+enum svgtiny_parse_inline_style_operation {
+	ISTYLEOP_NONE,
+	ISTYLEOP_PAINT,
+	ISTYLEOP_COLOR,
+	ISTYLEOP_LENGTH,
+	ISTYLEOP_INTLENGTH,
+};
+
+/**
+ * control structure for inline style parse
+ */
+struct svgtiny_parse_inline_style_op {
+	dom_string *key;
+	enum svgtiny_parse_inline_style_operation operation;
+	void *param;
+	void *value;
+};
+
 /* svgtiny.c */
 struct svgtiny_shape *svgtiny_add_shape(struct svgtiny_parse_state *state);
 void svgtiny_transform_path(float *p, unsigned int n,
@@ -101,6 +119,9 @@ svgtiny_code svgtiny_parse_color(const char *text, size_t textlen,
 svgtiny_code svgtiny_parse_viewbox(const char *text, size_t textlen,
 		float viewport_width, float viewport_height,
 		struct svgtiny_transformation_matrix *tm);
+svgtiny_code svgtiny_parse_inline_style(const char *text, size_t textlen,
+		struct svgtiny_parse_state *state,
+		struct svgtiny_parse_inline_style_op *styles);
 
 /* svgtiny_gradient.c */
 svgtiny_code svgtiny_find_gradient(const char *id,

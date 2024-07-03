@@ -358,6 +358,19 @@ static inline void advance_id(const char **cursor, const char *textend)
 	}
 }
 
+static inline void advance_property_name(const char **cursor, const char *textend)
+{
+	while ((*cursor) < textend) {
+		if (((**cursor < 0x30 /* 0 */) || (**cursor > 0x39 /* 9 */)) &&
+		    ((**cursor < 0x41 /* A */) || (**cursor > 0x5A /* Z */)) &&
+		    ((**cursor < 0x61 /* a */) || (**cursor > 0x7A /* z */)) &&
+		    (**cursor != '-') &&
+		    (**cursor != '_')) {
+			break;
+		}
+		(*cursor)++;
+	}
+}
 
 enum transform_type {
 	TRANSFORM_UNK,
@@ -1263,5 +1276,127 @@ svgtiny_parse_viewbox(const char *text,
 	tm->e += -paramv[0] * tm->a;
 	tm->f += -paramv[1] * tm->d;
 
+	return svgtiny_OK;
+}
+
+/**
+ * parse a declaration in a style
+ *
+ * https://www.w3.org/TR/CSS21/syndata.html#declaration
+ *
+ * \param declaration The declaration without any preceeding space
+ * \param end The end of the declaration string
+ * \param state parse state to pass on
+ * \param styleops The table of style operations to apply
+ *
+ * declaration is "<property name> : <property value>"
+ */
+static inline svgtiny_code
+parse_declaration(const char *declaration,
+		  const char *end,
+		  struct svgtiny_parse_state *state,
+		  struct svgtiny_parse_inline_style_op *styleops)
+{
+	const char *cursor = declaration; /* text cursor */
+	size_t key_len; /* key length */
+	struct svgtiny_parse_inline_style_op *styleop;
+
+	/* declaration must be at least 3 characters long (ie "a:b") */
+	if ((end - declaration) < 3) {
+		return svgtiny_SVG_ERROR;
+	}
+
+	/* find end of key */
+	advance_property_name(&cursor, end);
+
+	if ((cursor - declaration) < 1) {
+		/* no key */
+		return svgtiny_SVG_ERROR;
+	}
+
+	key_len = cursor - declaration;
+
+	advance_whitespace(&cursor, end);
+
+	if ((cursor >= end) || (*cursor != ':')) {
+		/* no colon */
+		return svgtiny_SVG_ERROR;
+	}
+	cursor++; /* advance over colon */
+
+	advance_whitespace(&cursor, end);
+
+	/* search style operations for a match */
+	for (styleop = styleops; styleop->key != NULL; styleop++) {
+		if ((dom_string_byte_length(styleop->key) == key_len) &&
+		    (memcmp(declaration, dom_string_data(styleop->key), key_len) == 0)) {
+			float parse_len;
+
+			switch (styleop->operation) {
+			case ISTYLEOP_PAINT:
+				svgtiny_parse_paint(cursor,
+						    end - cursor,
+						    styleop->param,
+						    state,
+						    styleop->value);
+				break;
+
+			case ISTYLEOP_COLOR:
+				svgtiny_parse_color(cursor,
+						    end - cursor,
+						    styleop->value);
+				break;
+
+			case ISTYLEOP_LENGTH:
+				svgtiny_parse_length(cursor,
+						     end - cursor,
+						     *((int *)styleop->param),
+						     styleop->value);
+				break;
+
+			case ISTYLEOP_INTLENGTH:
+				svgtiny_parse_length(cursor,
+						     end - cursor,
+						     *((int *)styleop->param),
+						     &parse_len);
+				*((int *)styleop->value) = parse_len;
+				break;
+
+			default:
+				break;
+			}
+			break; /* found the operation, stop iterating */
+		}
+	}
+
+	return svgtiny_OK;
+}
+
+/**
+ * parse an inline style
+ */
+svgtiny_code
+svgtiny_parse_inline_style(const char *text,
+			   size_t textlen,
+			   struct svgtiny_parse_state *state,
+			   struct svgtiny_parse_inline_style_op *styles)
+{
+	const char *cursor = text; /* text cursor */
+	const char *textend = text + textlen;
+	const char *declaration_start;
+
+	while (cursor < textend) {
+		advance_whitespace(&cursor, textend);
+		declaration_start = cursor;
+		while (cursor < textend) {
+			if ((*cursor == ';') &&
+			    (*(cursor - 1) != '\\')) {
+				break;
+			}
+			cursor++;
+		}
+		parse_declaration(declaration_start, cursor, state, styles);
+		cursor++;/* skip semicolon */
+	}
 	return svgtiny_OK;
 }
