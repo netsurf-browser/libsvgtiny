@@ -36,6 +36,14 @@
 #define degToRad(angleInDegrees) ((angleInDegrees) * M_PI / 180.0)
 #define radToDeg(angleInRadians) ((angleInRadians) * 180.0 / M_PI)
 
+#if (defined(_GNU_SOURCE) && !defined(__APPLE__) || defined(__amigaos4__) || defined(__HAIKU__) || (defined(_POSIX_C_SOURCE) && ((_POSIX_C_SOURCE - 0) >= 200809L)))
+#define HAVE_STRNDUP
+#else
+#undef HAVE_STRNDUP
+char *svgtiny_strndup(const char *s, size_t n);
+#define strndup svgtiny_strndup
+#endif
+
 static svgtiny_code svgtiny_parse_svg(dom_element *svg,
 		struct svgtiny_parse_state state);
 static svgtiny_code svgtiny_parse_path(dom_element *path,
@@ -1855,20 +1863,44 @@ svgtiny_code svgtiny_add_path(float *p, unsigned int n,
 		struct svgtiny_parse_state *state)
 {
 	struct svgtiny_shape *shape;
+	svgtiny_code res = svgtiny_OK;
 
-	if (state->fill == svgtiny_LINEAR_GRADIENT)
-		return svgtiny_add_path_linear_gradient(p, n, state);
+	if (state->fill == svgtiny_LINEAR_GRADIENT) {
+		/* adds a shape to fill the path with a linear gradient */
+		res = svgtiny_gradient_add_fill_path(p, n, state);
+	}
+	if (res != svgtiny_OK) {
+		free(p);
+		return res;
+	}
+
+	if (state->stroke == svgtiny_LINEAR_GRADIENT) {
+		/* adds a shape to stroke the path with a linear gradient */
+		res = svgtiny_gradient_add_stroke_path(p, n, state);
+	}
+	if (res != svgtiny_OK) {
+		free(p);
+		return res;
+	}
+
+	/* if stroke and fill are transparent do not add a shape */
+	if ((state->fill == svgtiny_TRANSPARENT) &&
+	    (state->stroke == svgtiny_TRANSPARENT)) {
+		free(p);
+		return res;
+	}
 
 	svgtiny_transform_path(p, n, state);
 
 	shape = svgtiny_add_shape(state);
-	if (!shape) {
+	if (shape == NULL) {
 		free(p);
 		return svgtiny_OUT_OF_MEMORY;
 	}
 	shape->path = p;
 	shape->path_length = n;
 	state->diagram->shape_count++;
+
 
 	return svgtiny_OK;
 }
@@ -1880,24 +1912,25 @@ svgtiny_code svgtiny_add_path(float *p, unsigned int n,
 
 struct svgtiny_shape *svgtiny_add_shape(struct svgtiny_parse_state *state)
 {
-	struct svgtiny_shape *shape = realloc(state->diagram->shape,
+	struct svgtiny_shape *shape;
+
+	shape = realloc(state->diagram->shape,
 			(state->diagram->shape_count + 1) *
 			sizeof (state->diagram->shape[0]));
-	if (!shape)
-		return 0;
-	state->diagram->shape = shape;
+	if (shape != NULL) {
+		state->diagram->shape = shape;
 
-	shape += state->diagram->shape_count;
-	shape->path = 0;
-	shape->path_length = 0;
-	shape->text = 0;
-	shape->fill = state->fill;
-	shape->stroke = state->stroke;
-	shape->stroke_width = lroundf((float) state->stroke_width *
-			(state->ctm.a + state->ctm.d) / 2.0);
-	if (0 < state->stroke_width && shape->stroke_width == 0)
-		shape->stroke_width = 1;
-
+		shape += state->diagram->shape_count;
+		shape->path = 0;
+		shape->path_length = 0;
+		shape->text = 0;
+		shape->fill = state->fill;
+		shape->stroke = state->stroke;
+		shape->stroke_width = lroundf((float) state->stroke_width *
+					      (state->ctm.a + state->ctm.d) / 2.0);
+		if (0 < state->stroke_width && shape->stroke_width == 0)
+			shape->stroke_width = 1;
+	}
 	return shape;
 }
 

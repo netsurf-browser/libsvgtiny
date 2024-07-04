@@ -94,13 +94,6 @@ struct svgtiny_parse_internal_operation {
 struct svgtiny_shape *svgtiny_add_shape(struct svgtiny_parse_state *state);
 void svgtiny_transform_path(float *p, unsigned int n,
 		struct svgtiny_parse_state *state);
-#if (defined(_GNU_SOURCE) && !defined(__APPLE__) || defined(__amigaos4__) || defined(__HAIKU__) || (defined(_POSIX_C_SOURCE) && ((_POSIX_C_SOURCE - 0) >= 200809L)))
-#define HAVE_STRNDUP
-#else
-#undef HAVE_STRNDUP
-char *svgtiny_strndup(const char *s, size_t n);
-#define strndup svgtiny_strndup
-#endif
 
 /* svgtiny_parse.c */
 svgtiny_code svgtiny_parse_poly_points(const char *data, size_t datalen,
@@ -126,7 +119,9 @@ svgtiny_code svgtiny_find_gradient(const char *id,
 		size_t idlen,
 		struct svgtiny_parse_state_gradient *grad,
 		struct svgtiny_parse_state *state);
-svgtiny_code svgtiny_add_path_linear_gradient(float *p, unsigned int n,
+svgtiny_code svgtiny_gradient_add_fill_path(float *p, unsigned int n,
+		struct svgtiny_parse_state *state);
+svgtiny_code svgtiny_gradient_add_stroke_path(float *p, unsigned int n,
 		struct svgtiny_parse_state *state);
 
 /* svgtiny_list.c */
