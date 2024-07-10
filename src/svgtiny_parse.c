@@ -856,19 +856,192 @@ parse_paint_url(const char **cursorout,
 
 	/* find and update gradient */
 	res = svgtiny_find_gradient(idstart, idend - idstart, grad, state);
-
 	if (res == svgtiny_OK) {
-		/* only set the color if the gradient was processed ok */
-		if (grad->linear_gradient_stop_count == 0) {
-			*c = svgtiny_TRANSPARENT;
-		} else if (grad->linear_gradient_stop_count == 1) {
-			*c = grad->gradient_stop[0].color;
-		} else {
-			*c = svgtiny_LINEAR_GRADIENT;
-		}
+		*c = svgtiny_LINEAR_GRADIENT;
 	}
 
 	return res;
+}
+
+
+/**
+ * Parse a paint.
+ *
+ * https://www.w3.org/TR/SVG11/painting.html#SpecifyingPaint
+ * https://www.w3.org/TR/SVG2/painting.html#SpecifyingPaint
+ *
+ */
+static svgtiny_code
+svgtiny_parse_paint(const char *text,
+		    size_t textlen,
+		    struct svgtiny_parse_state_gradient *grad,
+		    struct svgtiny_parse_state *state,
+		    svgtiny_colour *c)
+{
+	const char *cursor = text; /* cursor */
+	const char *textend = text+textlen;
+	svgtiny_code res;
+
+	advance_whitespace(&cursor, textend);
+
+	if (((textend - cursor) == 4) &&
+	    cursor[0] == 'n' &&
+	    cursor[1] == 'o' &&
+	    cursor[2] == 'n' &&
+	    cursor[3] == 'e') {
+		*c = svgtiny_TRANSPARENT;
+		return svgtiny_OK;
+	}
+
+	/* attempt to parse element as a paint url */
+	res = parse_paint_url(&cursor, textend, grad, state, c);
+	if (res == svgtiny_OK) {
+		return res;
+	}
+
+	return svgtiny_parse_color(cursor, textend - cursor, c);
+}
+
+
+/**
+ * parse an offset
+ */
+static svgtiny_code
+svgtiny_parse_offset(const char *text, size_t textlen, float *offset)
+{
+	svgtiny_code err;
+	float number;
+	const char *numend;
+
+	numend = text + textlen;
+	err = parse_number(text, &numend, &number);
+	if (err != svgtiny_OK) {
+		return err;
+	}
+	if ((numend < (text + textlen)) && (*numend == '%')) {
+		number /= 100.0;
+	}
+	/* ensure value between 0 and 1 */
+	if (number < 0) {
+		number = 0;
+	}
+	if (number > 1.0) {
+		number = 1.0;
+	}
+	*offset = number;
+	return svgtiny_OK;
+}
+
+
+/**
+ * dispatch parse operation
+ */
+static inline svgtiny_code
+dispatch_op(const char *value,
+	    size_t value_len,
+	    struct svgtiny_parse_state *state,
+	    struct svgtiny_parse_internal_operation *styleop)
+{
+	float parse_len;
+	svgtiny_code res = svgtiny_OK;
+
+	switch (styleop->operation) {
+	case SVGTIOP_NONE:
+		res = svgtiny_SVG_ERROR;
+		break;
+
+	case SVGTIOP_PAINT:
+		res = svgtiny_parse_paint(value,
+				    value_len,
+				    styleop->param,
+				    state,
+				    styleop->value);
+		break;
+
+	case SVGTIOP_COLOR:
+		res = svgtiny_parse_color(value, value_len, styleop->value);
+		break;
+
+	case SVGTIOP_LENGTH:
+		res = svgtiny_parse_length(value,
+				     value_len,
+				     *((int *)styleop->param),
+				     styleop->value);
+		break;
+
+	case SVGTIOP_INTLENGTH:
+		res = svgtiny_parse_length(value,
+				     value_len,
+				     *((int *)styleop->param),
+				     &parse_len);
+		*((int *)styleop->value) = parse_len;
+		break;
+
+	case SVGTIOP_OFFSET:
+		res = svgtiny_parse_offset(value, value_len, styleop->value);
+		break;
+	}
+	return res;
+}
+
+
+/**
+ * parse a declaration in a style
+ *
+ * https://www.w3.org/TR/CSS21/syndata.html#declaration
+ *
+ * \param declaration The declaration without any preceeding space
+ * \param end The end of the declaration string
+ * \param state parse state to pass on
+ * \param styleops The table of style operations to apply
+ *
+ * declaration is "<property name> : <property value>"
+ */
+static inline svgtiny_code
+parse_declaration(const char *declaration,
+		  const char *end,
+		  struct svgtiny_parse_state *state,
+		  struct svgtiny_parse_internal_operation *styleops)
+{
+	const char *cursor = declaration; /* text cursor */
+	size_t key_len; /* key length */
+	struct svgtiny_parse_internal_operation *styleop;
+
+	/* declaration must be at least 3 characters long (ie "a:b") */
+	if ((end - declaration) < 3) {
+		return svgtiny_SVG_ERROR;
+	}
+
+	/* find end of key */
+	advance_property_name(&cursor, end);
+
+	if ((cursor - declaration) < 1) {
+		/* no key */
+		return svgtiny_SVG_ERROR;
+	}
+
+	key_len = cursor - declaration;
+
+	advance_whitespace(&cursor, end);
+
+	if ((cursor >= end) || (*cursor != ':')) {
+		/* no colon */
+		return svgtiny_SVG_ERROR;
+	}
+	cursor++; /* advance over colon */
+
+	advance_whitespace(&cursor, end);
+
+	/* search style operations for a match */
+	for (styleop = styleops; styleop->key != NULL; styleop++) {
+		if ((dom_string_byte_length(styleop->key) == key_len) &&
+		    (memcmp(declaration, dom_string_data(styleop->key), key_len) == 0)) {
+			/* found the operation, stop iterating */
+			return dispatch_op(cursor, end - cursor, state, styleop);
+		}
+	}
+
+	return svgtiny_OK;
 }
 
 
@@ -1136,43 +1309,6 @@ transform_parse_complete:
 }
 
 
-/**
- * Parse a paint.
- *
- * https://www.w3.org/TR/SVG11/painting.html#SpecifyingPaint
- * https://www.w3.org/TR/SVG2/painting.html#SpecifyingPaint
- *
- */
-svgtiny_code
-svgtiny_parse_paint(const char *text,
-		    size_t textlen,
-		    struct svgtiny_parse_state_gradient *grad,
-		    struct svgtiny_parse_state *state,
-		    svgtiny_colour *c)
-{
-	const char *cursor = text; /* cursor */
-	const char *textend = text+textlen;
-	svgtiny_code res;
-
-	advance_whitespace(&cursor, textend);
-
-	if (((textend - cursor) == 4) &&
-	    cursor[0] == 'n' &&
-	    cursor[1] == 'o' &&
-	    cursor[2] == 'n' &&
-	    cursor[3] == 'e') {
-		*c = svgtiny_TRANSPARENT;
-		return svgtiny_OK;
-	}
-
-	/* attempt to parse element as a paint url */
-	res = parse_paint_url(&cursor, textend, grad, state, c);
-	if (res == svgtiny_OK) {
-		return res;
-	}
-
-	return svgtiny_parse_color(cursor, textend - cursor, c);
-}
 
 
 /**
@@ -1279,111 +1415,32 @@ svgtiny_parse_viewbox(const char *text,
 	return svgtiny_OK;
 }
 
-/**
- * parse a declaration in a style
- *
- * https://www.w3.org/TR/CSS21/syndata.html#declaration
- *
- * \param declaration The declaration without any preceeding space
- * \param end The end of the declaration string
- * \param state parse state to pass on
- * \param styleops The table of style operations to apply
- *
- * declaration is "<property name> : <property value>"
- */
-static inline svgtiny_code
-parse_declaration(const char *declaration,
-		  const char *end,
-		  struct svgtiny_parse_state *state,
-		  struct svgtiny_parse_inline_style_op *styleops)
-{
-	const char *cursor = declaration; /* text cursor */
-	size_t key_len; /* key length */
-	struct svgtiny_parse_inline_style_op *styleop;
-
-	/* declaration must be at least 3 characters long (ie "a:b") */
-	if ((end - declaration) < 3) {
-		return svgtiny_SVG_ERROR;
-	}
-
-	/* find end of key */
-	advance_property_name(&cursor, end);
-
-	if ((cursor - declaration) < 1) {
-		/* no key */
-		return svgtiny_SVG_ERROR;
-	}
-
-	key_len = cursor - declaration;
-
-	advance_whitespace(&cursor, end);
-
-	if ((cursor >= end) || (*cursor != ':')) {
-		/* no colon */
-		return svgtiny_SVG_ERROR;
-	}
-	cursor++; /* advance over colon */
-
-	advance_whitespace(&cursor, end);
-
-	/* search style operations for a match */
-	for (styleop = styleops; styleop->key != NULL; styleop++) {
-		if ((dom_string_byte_length(styleop->key) == key_len) &&
-		    (memcmp(declaration, dom_string_data(styleop->key), key_len) == 0)) {
-			float parse_len;
-
-			switch (styleop->operation) {
-			case ISTYLEOP_PAINT:
-				svgtiny_parse_paint(cursor,
-						    end - cursor,
-						    styleop->param,
-						    state,
-						    styleop->value);
-				break;
-
-			case ISTYLEOP_COLOR:
-				svgtiny_parse_color(cursor,
-						    end - cursor,
-						    styleop->value);
-				break;
-
-			case ISTYLEOP_LENGTH:
-				svgtiny_parse_length(cursor,
-						     end - cursor,
-						     *((int *)styleop->param),
-						     styleop->value);
-				break;
-
-			case ISTYLEOP_INTLENGTH:
-				svgtiny_parse_length(cursor,
-						     end - cursor,
-						     *((int *)styleop->param),
-						     &parse_len);
-				*((int *)styleop->value) = parse_len;
-				break;
-
-			default:
-				break;
-			}
-			break; /* found the operation, stop iterating */
-		}
-	}
-
-	return svgtiny_OK;
-}
 
 /**
  * parse an inline style
  */
 svgtiny_code
-svgtiny_parse_inline_style(const char *text,
-			   size_t textlen,
+svgtiny_parse_inline_style(dom_element *node,
 			   struct svgtiny_parse_state *state,
-			   struct svgtiny_parse_inline_style_op *styles)
+			   struct svgtiny_parse_internal_operation *ops)
 {
-	const char *cursor = text; /* text cursor */
-	const char *textend = text + textlen;
+	const char *cursor; /* text cursor */
+	const char *textend;
 	const char *declaration_start;
+	dom_string *attr;
+	dom_exception exc;
+
+	/* style attribute */
+	exc = dom_element_get_attribute(node, state->interned_style, &attr);
+	if (exc != DOM_NO_ERR) {
+		return svgtiny_LIBDOM_ERROR;
+	}
+	if (attr == NULL) {
+		/* no style attribute */
+		return svgtiny_OK;
+	}
+	cursor = dom_string_data(attr);
+	textend = cursor + dom_string_byte_length(attr);
 
 	while (cursor < textend) {
 		advance_whitespace(&cursor, textend);
@@ -1395,8 +1452,38 @@ svgtiny_parse_inline_style(const char *text,
 			}
 			cursor++;
 		}
-		parse_declaration(declaration_start, cursor, state, styles);
-		cursor++;/* skip semicolon */
+		parse_declaration(declaration_start, cursor, state, ops);
+		cursor++; /* skip semicolon */
+	}
+	dom_string_unref(attr);
+	return svgtiny_OK;
+}
+
+
+/**
+ * parse attributes controled by operation table
+ */
+svgtiny_code
+svgtiny_parse_attributes(dom_element *node,
+			 struct svgtiny_parse_state *state,
+			 struct svgtiny_parse_internal_operation *styleops)
+{
+	struct svgtiny_parse_internal_operation *styleop;
+	dom_string *attr;
+	dom_exception exc;
+
+	for (styleop = styleops; styleop->key != NULL; styleop++) {
+		exc = dom_element_get_attribute(node, styleop->key, &attr);
+		if (exc != DOM_NO_ERR) {
+			return svgtiny_LIBDOM_ERROR;
+		}
+		if (attr != NULL) {
+			dispatch_op(dom_string_data(attr),
+				    dom_string_byte_length(attr),
+				    state,
+				    styleop);
+			dom_string_unref(attr);
+		}
 	}
 	return svgtiny_OK;
 }

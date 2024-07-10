@@ -53,7 +53,7 @@ static svgtiny_code svgtiny_parse_poly(dom_element *poly,
 static svgtiny_code svgtiny_parse_text(dom_element *text,
 		struct svgtiny_parse_state state);
 static void svgtiny_parse_position_attributes(dom_element *node,
-		const struct svgtiny_parse_state state,
+		struct svgtiny_parse_state state,
 		float *x, float *y, float *width, float *height);
 static void svgtiny_parse_paint_attributes(dom_element *node,
 		struct svgtiny_parse_state *state);
@@ -1273,49 +1273,34 @@ svgtiny_code svgtiny_parse_circle(dom_element *circle,
 	svgtiny_code err;
 	float x = 0, y = 0, r = -1;
 	float *p;
-	dom_string *attr;
-	dom_exception exc;
+	struct svgtiny_parse_internal_operation ops[] = {
+		{
+			state.interned_cx,
+			SVGTIOP_LENGTH,
+			&state.viewport_width,
+			&x
+		}, {
+			state.interned_cy,
+			SVGTIOP_LENGTH,
+			&state.viewport_height,
+			&y
+		}, {
+			state.interned_r,
+			SVGTIOP_LENGTH,
+			&state.viewport_width,
+			&r
+		}, {
+			NULL, SVGTIOP_NONE, NULL, NULL
+		},
+	};
 
 	svgtiny_setup_state_local(&state);
 
-	exc = dom_element_get_attribute(circle, state.interned_cx, &attr);
-	if (exc != DOM_NO_ERR) {
+	err = svgtiny_parse_attributes(circle, &state, ops);
+	if (err != svgtiny_OK) {
 		svgtiny_cleanup_state_local(&state);
-		return svgtiny_LIBDOM_ERROR;
+		return err;
 	}
-	if (attr != NULL) {
-		svgtiny_parse_length(dom_string_data(attr),
-				     dom_string_byte_length(attr),
-				     state.viewport_width,
-				     &x);
-	}
-	dom_string_unref(attr);
-
-	exc = dom_element_get_attribute(circle, state.interned_cy, &attr);
-	if (exc != DOM_NO_ERR) {
-		svgtiny_cleanup_state_local(&state);
-		return svgtiny_LIBDOM_ERROR;
-	}
-	if (attr != NULL) {
-		svgtiny_parse_length(dom_string_data(attr),
-				     dom_string_byte_length(attr),
-				     state.viewport_height,
-				     &y);
-	}
-	dom_string_unref(attr);
-
-	exc = dom_element_get_attribute(circle, state.interned_r, &attr);
-	if (exc != DOM_NO_ERR) {
-		svgtiny_cleanup_state_local(&state);
-		return svgtiny_LIBDOM_ERROR;
-	}
-	if (attr != NULL) {
-		svgtiny_parse_length(dom_string_data(attr),
-				     dom_string_byte_length(attr),
-				     state.viewport_width,
-				     &r);
-	}
-	dom_string_unref(attr);
 
 	svgtiny_parse_paint_attributes(circle, &state);
 	svgtiny_parse_transform_attributes(circle, &state);
@@ -1388,62 +1373,39 @@ svgtiny_code svgtiny_parse_ellipse(dom_element *ellipse,
 	svgtiny_code err;
 	float x = 0, y = 0, rx = -1, ry = -1;
 	float *p;
-	dom_string *attr;
-	dom_exception exc;
+	struct svgtiny_parse_internal_operation ops[] = {
+		{
+			state.interned_cx,
+			SVGTIOP_LENGTH,
+			&state.viewport_width,
+			&x
+		}, {
+			state.interned_cy,
+			SVGTIOP_LENGTH,
+			&state.viewport_height,
+			&y
+		}, {
+			state.interned_rx,
+			SVGTIOP_LENGTH,
+			&state.viewport_width,
+			&rx
+		}, {
+			state.interned_ry,
+			SVGTIOP_LENGTH,
+			&state.viewport_height,
+			&ry
+		}, {
+			NULL, SVGTIOP_NONE, NULL, NULL
+		},
+	};
 
 	svgtiny_setup_state_local(&state);
 
-	exc = dom_element_get_attribute(ellipse, state.interned_cx, &attr);
-	if (exc != DOM_NO_ERR) {
+	err = svgtiny_parse_attributes(ellipse, &state, ops);
+	if (err != svgtiny_OK) {
 		svgtiny_cleanup_state_local(&state);
-		return svgtiny_LIBDOM_ERROR;
+		return err;
 	}
-	if (attr != NULL) {
-		svgtiny_parse_length(dom_string_data(attr),
-				     dom_string_byte_length(attr),
-				     state.viewport_width,
-				     &x);
-	}
-	dom_string_unref(attr);
-
-	exc = dom_element_get_attribute(ellipse, state.interned_cy, &attr);
-	if (exc != DOM_NO_ERR) {
-		svgtiny_cleanup_state_local(&state);
-		return svgtiny_LIBDOM_ERROR;
-	}
-	if (attr != NULL) {
-		svgtiny_parse_length(dom_string_data(attr),
-				     dom_string_byte_length(attr),
-				     state.viewport_height,
-				     &y);
-	}
-	dom_string_unref(attr);
-
-	exc = dom_element_get_attribute(ellipse, state.interned_rx, &attr);
-	if (exc != DOM_NO_ERR) {
-		svgtiny_cleanup_state_local(&state);
-		return svgtiny_LIBDOM_ERROR;
-	}
-	if (attr != NULL) {
-		svgtiny_parse_length(dom_string_data(attr),
-				     dom_string_byte_length(attr),
-				     state.viewport_width,
-				     &rx);
-	}
-	dom_string_unref(attr);
-
-	exc = dom_element_get_attribute(ellipse, state.interned_ry, &attr);
-	if (exc != DOM_NO_ERR) {
-		svgtiny_cleanup_state_local(&state);
-		return svgtiny_LIBDOM_ERROR;
-	}
-	if (attr != NULL) {
-		svgtiny_parse_length(dom_string_data(attr),
-				     dom_string_byte_length(attr),
-				     state.viewport_width,
-				     &ry);
-	}
-	dom_string_unref(attr);
 
 	svgtiny_parse_paint_attributes(ellipse, &state);
 	svgtiny_parse_transform_attributes(ellipse, &state);
@@ -1517,62 +1479,39 @@ svgtiny_code svgtiny_parse_line(dom_element *line,
 	svgtiny_code err;
 	float x1 = 0, y1 = 0, x2 = 0, y2 = 0;
 	float *p;
-	dom_string *attr;
-	dom_exception exc;
+	struct svgtiny_parse_internal_operation ops[] = {
+		{
+			state.interned_x1,
+			SVGTIOP_LENGTH,
+			&state.viewport_width,
+			&x1
+		}, {
+			state.interned_y1,
+			SVGTIOP_LENGTH,
+			&state.viewport_height,
+			&y1
+		}, {
+			state.interned_x2,
+			SVGTIOP_LENGTH,
+			&state.viewport_width,
+			&x2
+		}, {
+			state.interned_y2,
+			SVGTIOP_LENGTH,
+			&state.viewport_height,
+			&y2
+		}, {
+			NULL, SVGTIOP_NONE, NULL, NULL
+		},
+	};
 
 	svgtiny_setup_state_local(&state);
 
-	exc = dom_element_get_attribute(line, state.interned_x1, &attr);
-	if (exc != DOM_NO_ERR) {
+	err = svgtiny_parse_attributes(line, &state, ops);
+	if (err != svgtiny_OK) {
 		svgtiny_cleanup_state_local(&state);
-		return svgtiny_LIBDOM_ERROR;
+		return err;
 	}
-	if (attr != NULL) {
-		svgtiny_parse_length(dom_string_data(attr),
-				     dom_string_byte_length(attr),
-				     state.viewport_width,
-				     &x1);
-	}
-	dom_string_unref(attr);
-
-	exc = dom_element_get_attribute(line, state.interned_y1, &attr);
-	if (exc != DOM_NO_ERR) {
-		svgtiny_cleanup_state_local(&state);
-		return svgtiny_LIBDOM_ERROR;
-	}
-	if (attr != NULL) {
-		svgtiny_parse_length(dom_string_data(attr),
-				     dom_string_byte_length(attr),
-				     state.viewport_height,
-				     &y1);
-	}
-	dom_string_unref(attr);
-
-	exc = dom_element_get_attribute(line, state.interned_x2, &attr);
-	if (exc != DOM_NO_ERR) {
-		svgtiny_cleanup_state_local(&state);
-		return svgtiny_LIBDOM_ERROR;
-	}
-	if (attr != NULL) {
-		svgtiny_parse_length(dom_string_data(attr),
-				     dom_string_byte_length(attr),
-				     state.viewport_width,
-				     &x2);
-	}
-	dom_string_unref(attr);
-
-	exc = dom_element_get_attribute(line, state.interned_y2, &attr);
-	if (exc != DOM_NO_ERR) {
-		svgtiny_cleanup_state_local(&state);
-		return svgtiny_LIBDOM_ERROR;
-	}
-	if (attr != NULL) {
-		svgtiny_parse_length(dom_string_data(attr),
-				     dom_string_byte_length(attr),
-				     state.viewport_height,
-				     &y2);
-	}
-	dom_string_unref(attr);
 
 	svgtiny_parse_paint_attributes(line, &state);
 	svgtiny_parse_transform_attributes(line, &state);
@@ -1778,52 +1717,45 @@ svgtiny_code svgtiny_parse_text(dom_element *text,
  */
 
 void svgtiny_parse_position_attributes(dom_element *node,
-		const struct svgtiny_parse_state state,
+		struct svgtiny_parse_state state,
 		float *x, float *y, float *width, float *height)
 {
-	dom_string *attr;
-	dom_exception exc;
+	struct svgtiny_parse_internal_operation styles[] = {
+		{
+			/* x */
+			state.interned_x,
+			SVGTIOP_LENGTH,
+			&state.viewport_width,
+			x
+		},{
+			/* y */
+			state.interned_y,
+			SVGTIOP_LENGTH,
+			&state.viewport_height,
+			y
+		},{
+			/* width */
+			state.interned_width,
+			SVGTIOP_LENGTH,
+			&state.viewport_width,
+			width
+		},{
+			/* height */
+			state.interned_height,
+			SVGTIOP_LENGTH,
+			&state.viewport_height,
+			height
+		},{
+			NULL, SVGTIOP_NONE, NULL, NULL
+		},
+	};
 
 	*x = 0;
 	*y = 0;
 	*width = state.viewport_width;
 	*height = state.viewport_height;
 
-	exc = dom_element_get_attribute(node, state.interned_x, &attr);
-	if (exc == DOM_NO_ERR && attr != NULL) {
-		svgtiny_parse_length(dom_string_data(attr),
-				     dom_string_byte_length(attr),
-				     state.viewport_width,
-				     x);
-		dom_string_unref(attr);
-	}
-
-	exc = dom_element_get_attribute(node, state.interned_y, &attr);
-	if (exc == DOM_NO_ERR && attr != NULL) {
-		svgtiny_parse_length(dom_string_data(attr),
-				     dom_string_byte_length(attr),
-				     state.viewport_height,
-				     y);
-		dom_string_unref(attr);
-	}
-
-	exc = dom_element_get_attribute(node, state.interned_width, &attr);
-	if (exc == DOM_NO_ERR && attr != NULL) {
-		svgtiny_parse_length(dom_string_data(attr),
-				     dom_string_byte_length(attr),
-				     state.viewport_width,
-				     width);
-		dom_string_unref(attr);
-	}
-
-	exc = dom_element_get_attribute(node, state.interned_height, &attr);
-	if (exc == DOM_NO_ERR && attr != NULL) {
-		svgtiny_parse_length(dom_string_data(attr),
-				     dom_string_byte_length(attr),
-				     state.viewport_height,
-				     height);
-		dom_string_unref(attr);
-	}
+	svgtiny_parse_attributes(node, &state, styles);
 }
 
 
@@ -1833,72 +1765,32 @@ void svgtiny_parse_position_attributes(dom_element *node,
 void svgtiny_parse_paint_attributes(dom_element *node,
 		struct svgtiny_parse_state *state)
 {
-	dom_string *attr;
-	dom_exception exc;
+	struct svgtiny_parse_internal_operation ops[] = {
+		{
+			/* fill color */
+			state->interned_fill,
+			SVGTIOP_PAINT,
+			&state->fill_grad,
+			&state->fill
+		}, {
+			/* stroke color */
+			state->interned_stroke,
+			SVGTIOP_PAINT,
+			&state->stroke_grad,
+			&state->stroke
+		}, {
+			/* stroke width */
+			state->interned_stroke_width,
+			SVGTIOP_INTLENGTH,
+			&state->viewport_width,
+			&state->stroke_width
+		},{
+			NULL, SVGTIOP_NONE, NULL, NULL
+		},
+	};
 
-	/* fill color */
-	exc = dom_element_get_attribute(node, state->interned_fill, &attr);
-	if (exc == DOM_NO_ERR && attr != NULL) {
-		svgtiny_parse_paint(dom_string_data(attr),
-				    dom_string_byte_length(attr),
-				    &state->fill_grad,
-				    state,
-				    &state->fill);
-		dom_string_unref(attr);
-	}
-
-	/* stroke color */
-	exc = dom_element_get_attribute(node, state->interned_stroke, &attr);
-	if (exc == DOM_NO_ERR && attr != NULL) {
-		svgtiny_parse_paint(dom_string_data(attr),
-				    dom_string_byte_length(attr),
-				    &state->stroke_grad,
-				    state,
-				    &state->stroke);
-		dom_string_unref(attr);
-	}
-
-	/* stroke width */
-	exc = dom_element_get_attribute(node, state->interned_stroke_width, &attr);
-	if (exc == DOM_NO_ERR && attr != NULL) {
-		float stroke_width;
-		svgtiny_parse_length(dom_string_data(attr),
-				     dom_string_byte_length(attr),
-				     state->viewport_width,
-				     &stroke_width);
-		state->stroke_width = stroke_width;
-		dom_string_unref(attr);
-	}
-
-	/* style attribute */
-	exc = dom_element_get_attribute(node, state->interned_style, &attr);
-	if (exc == DOM_NO_ERR && attr != NULL) {
-		struct svgtiny_parse_inline_style_op styles[]={
-			{
-				state->interned_fill,
-				ISTYLEOP_PAINT,
-				&state->fill_grad,
-				&state->fill
-			}, {
-				state->interned_stroke,
-				ISTYLEOP_PAINT,
-				&state->stroke_grad,
-				&state->stroke
-			}, {
-				state->interned_stroke_width,
-				ISTYLEOP_INTLENGTH,
-				&state->viewport_width,
-				&state->stroke_width
-			},{
-				NULL, ISTYLEOP_NONE, NULL, NULL
-			},
-		};
-		svgtiny_parse_inline_style(dom_string_data(attr),
-					   dom_string_byte_length(attr),
-					   state,
-					   styles);
-		dom_string_unref(attr);
-	}
+	svgtiny_parse_attributes(node, state, ops);
+	svgtiny_parse_inline_style(node, state, ops);
 }
 
 
