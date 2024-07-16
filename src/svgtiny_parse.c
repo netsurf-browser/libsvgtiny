@@ -625,9 +625,9 @@ static inline unsigned int hexd_to_int(const char *digit)
 
 	if ((*digit >= 0x30 /* 0 */) && (*digit <= 0x39 /* 9 */)) {
 		value -= 0x30;
-	} else if ((*digit >= 0x41 /* A */) && (*digit <= 0x5A /* Z */) ) {
+	} else if ((*digit >= 0x41 /* A */) && (*digit <= 0x46 /* F */) ) {
 		value -= 0x37;
-	} else if (((*digit >= 0x61 /* a */) && (*digit <= 0x7A /* z */))) {
+	} else if (((*digit >= 0x61 /* a */) && (*digit <= 0x66 /* f */))) {
 		value -= 0x57;
 	}
 	return value;
@@ -822,7 +822,7 @@ parse_paint_url(const char **cursorout,
 	    ((cursor[2] != 'l') && (cursor[2] != 'L')) ||
 	    (cursor[3] != '('))
 	{
-		/* only function currently supported is rgb */
+		/* only function currently supported is url */
 		return svgtiny_SVG_ERROR;
 	}
 	cursor += 4;
@@ -863,6 +863,36 @@ parse_paint_url(const char **cursorout,
 	return res;
 }
 
+/**
+ * parse a none token
+ *
+ * \return svgtiny_OK if none found else svgtiny_SVG_ERROR if not
+ */
+static svgtiny_code
+parse_none(const char *cursor, const char *textend)
+{
+	const char *noneend;
+	if ((textend - cursor) < 4) {
+		/* too short to be none */
+		return svgtiny_SVG_ERROR;
+	}
+	if (cursor[0] != 'n' ||
+	    cursor[1] != 'o' ||
+	    cursor[2] != 'n' ||
+	    cursor[3] != 'e') {
+		/* keyword doesnt match */
+		return svgtiny_SVG_ERROR;
+	}
+	cursor += 4;
+	noneend = cursor;
+
+	advance_whitespace(&cursor, textend);
+	if ((noneend != textend) && (noneend == cursor)) {
+		/* trailing stuff that is not whitespace */
+		return svgtiny_SVG_ERROR;
+	}
+	return svgtiny_OK;
+}
 
 /**
  * Parse a paint.
@@ -879,18 +909,15 @@ svgtiny_parse_paint(const char *text,
 		    svgtiny_colour *c)
 {
 	const char *cursor = text; /* cursor */
-	const char *textend = text+textlen;
+	const char *textend = text + textlen;
 	svgtiny_code res;
 
 	advance_whitespace(&cursor, textend);
 
-	if (((textend - cursor) == 4) &&
-	    cursor[0] == 'n' &&
-	    cursor[1] == 'o' &&
-	    cursor[2] == 'n' &&
-	    cursor[3] == 'e') {
+	res = parse_none(cursor, textend);
+	if (res == svgtiny_OK) {
 		*c = svgtiny_TRANSPARENT;
-		return svgtiny_OK;
+		return res;
 	}
 
 	/* attempt to parse element as a paint url */
