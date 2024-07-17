@@ -113,6 +113,14 @@ svgtiny_code svgtiny_parse_inline_style(dom_element *node,
 svgtiny_code svgtiny_parse_attributes(dom_element *node,
 		struct svgtiny_parse_state *state,
 		struct svgtiny_parse_internal_operation *ops);
+svgtiny_code svgtiny_parse_none(const char *cursor, const char *textend);
+svgtiny_code svgtiny_parse_number(const char *text, const char **textend,
+		float *value);
+
+
+/* svgtiny_path.c */
+svgtiny_code svgtiny_parse_path_data(const char *text, size_t textlen,
+		float **pointv, unsigned int *pointc);
 
 /* svgtiny_gradient.c */
 svgtiny_code svgtiny_find_gradient(const char *id,

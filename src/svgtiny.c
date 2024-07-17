@@ -4,6 +4,7 @@
  *                http://opensource.org/licenses/mit-license.php
  * Copyright 2008-2009 James Bursa <james@semichrome.net>
  * Copyright 2012 Daniel Silverstone <dsilvers@netsurf-browser.org>
+ * Copyright 2024 Vincent Sanders <vince@netsurf-browser.org>
  */
 
 #include <assert.h>
@@ -21,20 +22,13 @@
 #include "svgtiny_internal.h"
 
 
-#define TAU             6.28318530717958647692
+/* circles are approximated with four bezier curves
+ *
+ * The optimal distance to the control points is the constant (4/3)*tan(pi/(2n))
+ * (where n is 4)
+ */
+#define KAPPA 0.5522847498
 
-#ifndef M_PI
-#define M_PI		3.14159265358979323846
-#endif
-
-#ifndef M_PI_2
-#define M_PI_2          1.57079632679489661923
-#endif
-
-#define KAPPA		0.5522847498
-
-#define degToRad(angleInDegrees) ((angleInDegrees) * M_PI / 180.0)
-#define radToDeg(angleInRadians) ((angleInRadians) * 180.0 / M_PI)
 
 #if (defined(_GNU_SOURCE) && !defined(__APPLE__) || defined(__amigaos4__) || defined(__HAIKU__) || (defined(_POSIX_C_SOURCE) && ((_POSIX_C_SOURCE - 0) >= 200809L)))
 #define HAVE_STRNDUP
@@ -44,474 +38,73 @@ char *svgtiny_strndup(const char *s, size_t n);
 #define strndup svgtiny_strndup
 #endif
 
-static svgtiny_code svgtiny_parse_svg(dom_element *svg,
-		struct svgtiny_parse_state state);
-static svgtiny_code svgtiny_parse_path(dom_element *path,
-		struct svgtiny_parse_state state);
-static svgtiny_code svgtiny_parse_rect(dom_element *rect,
-		struct svgtiny_parse_state state);
-static svgtiny_code svgtiny_parse_circle(dom_element *circle,
-		struct svgtiny_parse_state state);
-static svgtiny_code svgtiny_parse_ellipse(dom_element *ellipse,
-		struct svgtiny_parse_state state);
-static svgtiny_code svgtiny_parse_line(dom_element *line,
-		struct svgtiny_parse_state state);
-static svgtiny_code svgtiny_parse_poly(dom_element *poly,
-		struct svgtiny_parse_state state, bool polygon);
-static svgtiny_code svgtiny_parse_text(dom_element *text,
-		struct svgtiny_parse_state state);
-static void svgtiny_parse_position_attributes(dom_element *node,
-		struct svgtiny_parse_state state,
-		float *x, float *y, float *width, float *height);
-static void svgtiny_parse_paint_attributes(dom_element *node,
-		struct svgtiny_parse_state *state);
-static void svgtiny_parse_font_attributes(dom_element *node,
-		struct svgtiny_parse_state *state);
-static void svgtiny_parse_transform_attributes(dom_element *node,
-		struct svgtiny_parse_state *state);
-static svgtiny_code svgtiny_add_path(float *p, unsigned int n,
-		struct svgtiny_parse_state *state);
+
+#ifndef HAVE_STRNDUP
+char *svgtiny_strndup(const char *s, size_t n)
+{
+	size_t len;
+	char *s2;
+
+	for (len = 0; len != n && s[len]; len++)
+		continue;
+
+	s2 = malloc(len + 1);
+	if (s2 == NULL)
+		return NULL;
+
+	memcpy(s2, s, len);
+	s2[len] = '\0';
+
+	return s2;
+}
+#endif
+
 
 /**
- * rotate midpoint vector
+ * Parse x, y, width, and height attributes, if present.
  */
 static void
-rotate_midpoint_vector(float ax, float ay,
-		       float bx, float by,
-		       double radangle,
-		       double *x_out, double *y_out)
+svgtiny_parse_position_attributes(dom_element *node,
+				  struct svgtiny_parse_state state,
+				  float *x, float *y,
+				  float *width, float *height)
 {
-	double dx2; /* midpoint x coordinate */
-	double dy2; /* midpoint y coordinate */
-	double cosangle; /* cosine of rotation angle */
-	double sinangle; /* sine of rotation angle */
+	struct svgtiny_parse_internal_operation styles[] = {
+		{
+			/* x */
+			state.interned_x,
+			SVGTIOP_LENGTH,
+			&state.viewport_width,
+			x
+		},{
+			/* y */
+			state.interned_y,
+			SVGTIOP_LENGTH,
+			&state.viewport_height,
+			y
+		},{
+			/* width */
+			state.interned_width,
+			SVGTIOP_LENGTH,
+			&state.viewport_width,
+			width
+		},{
+			/* height */
+			state.interned_height,
+			SVGTIOP_LENGTH,
+			&state.viewport_height,
+			height
+		},{
+			NULL, SVGTIOP_NONE, NULL, NULL
+		},
+	};
 
-	/* compute the sin and cos of the angle */
-	cosangle = cos(radangle);
-	sinangle = sin(radangle);
+	*x = 0;
+	*y = 0;
+	*width = state.viewport_width;
+	*height = state.viewport_height;
 
-	/* compute the midpoint between start and end points */
-	dx2 = (ax - bx) / 2.0;
-	dy2 = (ay - by) / 2.0;
-
-	/* rotate vector to remove angle */
-	*x_out = ((cosangle * dx2) + (sinangle * dy2));
-	*y_out = ((-sinangle * dx2) + (cosangle * dy2));
-}
-
-
-/**
- * ensure the arc radii are large enough and scale as appropriate
- *
- * the radii need to be large enough if they are not they must be
- *  adjusted. This allows for elimination of differences between
- *  implementations especialy with rounding.
- */
-static void
-ensure_radii_scale(double x1_sq, double y1_sq,
-		   float *rx, float *ry,
-		   double *rx_sq, double *ry_sq)
-{
-	double radiisum;
-	double radiiscale;
-
-	/* set radii square values */
-	(*rx_sq) = (*rx) * (*rx);
-	(*ry_sq) = (*ry) * (*ry);
-
-	radiisum = (x1_sq / (*rx_sq)) + (y1_sq / (*ry_sq));
-	if (radiisum > 0.99999) {
-		/* need to scale radii */
-		radiiscale = sqrt(radiisum) * 1.00001;
-		*rx = (float)(radiiscale * (*rx));
-		*ry = (float)(radiiscale * (*ry));
-		/* update squares too */
-		(*rx_sq) = (*rx) * (*rx);
-		(*ry_sq) = (*ry) * (*ry);
-	}
-}
-
-
-/**
- * compute the transformed centre point
- */
-static void
-compute_transformed_centre_point(double sign, float rx, float ry,
-				 double rx_sq, double ry_sq,
-				 double x1, double y1,
-				 double x1_sq, double y1_sq,
-				 double *cx1, double *cy1)
-{
-	double sq;
-	double coef;
-	sq = ((rx_sq * ry_sq) - (rx_sq * y1_sq) - (ry_sq * x1_sq)) /
-		((rx_sq * y1_sq) + (ry_sq * x1_sq));
-	sq = (sq < 0) ? 0 : sq;
-
-	coef = (sign * sqrt(sq));
-
-	*cx1 = coef * ((rx * y1) / ry);
-	*cy1 = coef * -((ry * x1) / rx);
-}
-
-
-/**
- * compute untransformed centre point
- *
- * \param ax The first point x coordinate
- * \param ay The first point y coordinate
- * \param bx The second point x coordinate
- * \param ay The second point y coordinate
- */
-static void
-compute_centre_point(float ax, float ay,
-		     float bx, float by,
-		     double cx1, double cy1,
-		     double radangle,
-		     double *x_out, double *y_out)
-{
-	double sx2;
-	double sy2;
-	double cosangle; /* cosine of rotation angle */
-	double sinangle; /* sine of rotation angle */
-
-	/* compute the sin and cos of the angle */
-	cosangle = cos(radangle);
-	sinangle = sin(radangle);
-
-	sx2 = (ax + bx) / 2.0;
-	sy2 = (ay + by) / 2.0;
-
-	*x_out = sx2 + (cosangle * cx1 - sinangle * cy1);
-	*y_out = sy2 + (sinangle * cx1 + cosangle * cy1);
-}
-
-
-/**
- * compute the angle start and extent
- */
-static void
-compute_angle_start_extent(float rx, float ry,
-			   double x1, double y1,
-			   double cx1, double cy1,
-			   double *start, double *extent)
-{
-	double sign;
-	double ux;
-	double uy;
-	double vx;
-	double vy;
-	double p, n;
-	double actmp;
-
-	/*
-	 * Angle betwen two vectors is +/- acos( u.v / len(u) * len(v))
-	 * Where:
-	 *  '.' is the dot product.
-	 *  +/- is calculated from the sign of the cross product (u x v)
-	 */
-
-	ux = (x1 - cx1) / rx;
-	uy = (y1 - cy1) / ry;
-	vx = (-x1 - cx1) / rx;
-	vy = (-y1 - cy1) / ry;
-
-	/* compute the start angle */
-	/* The angle between (ux, uy) and the 0 angle */
-
-	/* len(u) * len(1,0) == len(u) */
-	n = sqrt((ux * ux) + (uy * uy));
-	/* u.v == (ux,uy).(1,0) == (1 * ux) + (0 * uy) == ux */
-	p = ux;
-	/* u x v == (1 * uy - ux * 0) == uy */
-	sign = (uy < 0) ? -1.0 : 1.0;
-	/* (p >= n) so safe */
-	*start = sign * acos(p / n);
-
-	/* compute the extent angle */
-	n = sqrt(((ux * ux) + (uy * uy)) * ((vx * vx) + (vy * vy)));
-	p = (ux * vx) + (uy * vy);
-	sign = ((ux * vy) - (uy * vx) < 0) ? -1.0f : 1.0f;
-
-	/* arc cos must operate between -1 and 1 */
-	actmp = p / n;
-	if (actmp < -1.0) {
-		*extent = sign * M_PI;
-	} else if (actmp > 1.0) {
-		*extent = 0;
-	} else {
-		*extent = sign * acos(actmp);
-	}
-}
-
-
-/**
- * converts a circle centered unit circle arc to a series of bezier curves
- *
- * Each bezier is stored as six values of three pairs of coordinates
- *
- * The beziers are stored without their start point as that is assumed
- *   to be the preceding elements end point.
- *
- * \param start The start angle of the arc (in radians)
- * \param extent The size of the arc (in radians)
- * \param bzpt The array to store the bezier values in
- * \return The number of bezier segments output (max 4)
- */
-static int
-circle_arc_to_bezier(double start, double extent, double *bzpt)
-{
-	int bzsegments;
-	double increment;
-	double controllen;
-	int pos = 0;
-	int segment;
-	double angle;
-	double dx, dy;
-
-	bzsegments = (int) ceil(fabs(extent) / M_PI_2);
-	increment = extent / bzsegments;
-	controllen = 4.0 / 3.0 * sin(increment / 2.0) / (1.0 + cos(increment / 2.0));
-
-	for (segment = 0; segment < bzsegments; segment++) {
-		/* first control point */
-		angle = start + (segment * increment);
-		dx = cos(angle);
-		dy = sin(angle);
-		bzpt[pos++] = dx - controllen * dy;
-		bzpt[pos++] = dy + controllen * dx;
-		/* second control point */
-		angle+=increment;
-		dx = cos(angle);
-		dy = sin(angle);
-		bzpt[pos++] = dx + controllen * dy;
-		bzpt[pos++] = dy - controllen * dx;
-		/* endpoint */
-		bzpt[pos++] = dx;
-		bzpt[pos++] = dy;
-
-	}
-	return bzsegments;
-}
-
-
-/**
- * transform coordinate list
- *
- * perform a scale, rotate and translate on list of coordinates
- *
- * scale(rx,ry)
- * rotate(an)
- * translate (cx, cy)
- *
- * homogeneous transforms
- *
- * scaling
- *     |   rx        0        0   |
- * S = |    0       ry        0   |
- *     |    0        0        1   |
- *
- * rotate
- *     | cos(an)  -sin(an)    0   |
- * R = | sin(an)   cos(an)    0   |
- *     |    0        0        1   |
- *
- * {{cos(a), -sin(a) 0}, {sin(a), cos(a),0}, {0,0,1}}
- *
- * translate
- *     |    1        0       cx   |
- * T = |    0        1       cy   |
- *     |    0        0        1   |
- *
- * note order is significat here and the combined matrix is
- * M = T.R.S
- *
- *       | cos(an)  -sin(an)    cx   |
- * T.R = | sin(an)   cos(an)    cy   |
- *       |    0        0        1    |
- *
- *         | rx * cos(an)  ry * -sin(an)   cx  |
- * T.R.S = | rx * sin(an)  ry * cos(an)    cy  |
- *         | 0             0               1   |
- *
- * {{Cos[a], -Sin[a], c}, {Sin[a], Cos[a], d}, {0, 0, 1}} . {{r, 0, 0}, {0, s, 0}, {0, 0, 1}}
- *
- * Each point
- *     | x1 |
- * P = | y1 |
- *     |  1 |
- *
- * output
- * | x2 |
- * | y2 | = M . P
- * | 1  |
- *
- * x2 = cx + (rx * x1 * cos(a)) + (ry * y1 * -1 * sin(a))
- * y2 = cy + (ry * y1 * cos(a)) + (rx * x1 * sin(a))
- *
- *
- * \param rx X scaling to apply
- * \param ry Y scaling to apply
- * \param radangle rotation to apply (in radians)
- * \param cx X translation to apply
- * \param cy Y translation to apply
- * \param points The size of the bzpoints array
- * \param bzpoints an array of x,y values to apply the transform to
- */
-static void
-scale_rotate_translate_points(double rx, double ry,
-			      double radangle,
-			      double cx, double cy,
-			      int pntsize,
-			      double *points)
-{
-	int pnt;
-	double cosangle; /* cosine of rotation angle */
-	double sinangle; /* sine of rotation angle */
-	double rxcosangle, rxsinangle, rycosangle, rynsinangle;
-	double x2,y2;
-
-	/* compute the sin and cos of the angle */
-	cosangle = cos(radangle);
-	sinangle = sin(radangle);
-
-	rxcosangle = rx * cosangle;
-	rxsinangle = rx * sinangle;
-	rycosangle = ry * cosangle;
-	rynsinangle = ry * -1 * sinangle;
-
-	for (pnt = 0; pnt < pntsize; pnt+=2) {
-		x2 = cx + (points[pnt] * rxcosangle) + (points[pnt + 1] * rynsinangle);
-		y2 = cy + (points[pnt + 1] * rycosangle) + (points[pnt] * rxsinangle);
-		points[pnt] = x2;
-		points[pnt + 1] = y2;
-	}
-}
-
-
-/**
- * convert an svg path arc to a bezier curve
- *
- * This function perfoms a transform on the nine arc parameters
- *  (coordinate pairs for start and end together with the radii of the
- *  elipse, the rotation angle and which of the four arcs to draw)
- *  which generates the parameters (coordinate pairs for start,
- *  end and their control points) for a set of up to four bezier curves.
- *
- * Obviously the start and end coordinates are not altered between
- * representations so the aim is to calculate the coordinate pairs for
- * the bezier control points.
- *
- * \param bzpoints the array to fill with bezier curves
- * \return the number of bezier segments generated or -1 for a line
- */
-static int
-svgarc_to_bezier(float start_x,
-		 float start_y,
-		 float end_x,
-		 float end_y,
-		 float rx,
-		 float ry,
-		 float angle,
-		 bool largearc,
-		 bool sweep,
-		 double *bzpoints)
-{
-	double radangle; /* normalised elipsis rotation angle in radians */
-	double rx_sq; /* x radius squared */
-	double ry_sq; /* y radius squared */
-	double x1, y1; /* rotated midpoint vector */
-	double x1_sq, y1_sq; /* x1 vector squared */
-	double cx1,cy1; /* transformed circle center */
-	double cx,cy; /* circle center */
-	double start, extent;
-	int bzsegments;
-
-	if ((start_x == end_x) && (start_y == end_y)) {
-		/*
-		 * if the start and end coordinates are the same the
-		 *  svg spec says this is equivalent to having no segment
-		 *  at all
-		 */
-		return 0;
-	}
-
-	if ((rx == 0) || (ry == 0)) {
-		/*
-		 * if either radii is zero the specified behaviour is a line
-		 */
-		return -1;
-	}
-
-	/* obtain the absolute values of the radii */
-	rx = fabsf(rx);
-	ry = fabsf(ry);
-
-	/* convert normalised angle to radians */
-	radangle = degToRad(fmod(angle, 360.0));
-
-	/* step 1 */
-	/* x1,x2 is the midpoint vector rotated to remove the arc angle */
-	rotate_midpoint_vector(start_x, start_y, end_x, end_y, radangle, &x1, &y1);
-
-	/* step 2 */
-	/* get squared x1 values */
-	x1_sq = x1 * x1;
-	y1_sq = y1 * y1;
-
-	/* ensure radii are correctly scaled  */
-	ensure_radii_scale(x1_sq, y1_sq, &rx, &ry, &rx_sq, &ry_sq);
-
-	/* compute the transformed centre point */
-	compute_transformed_centre_point(largearc == sweep?-1:1,
-					 rx, ry,
-					 rx_sq, ry_sq,
-					 x1, y1,
-					 x1_sq, y1_sq,
-					 &cx1, &cy1);
-
-	/* step 3 */
-	/* get the untransformed centre point */
-	compute_centre_point(start_x, start_y,
-			     end_x, end_y,
-			     cx1, cy1,
-			     radangle,
-			     &cx, &cy);
-
-	/* step 4 */
-	/* compute anglestart and extent */
-	compute_angle_start_extent(rx,ry,
-				   x1,y1,
-				   cx1, cy1,
-				   &start, &extent);
-
-	/* extent of 0 is a straight line */
-	if (extent == 0) {
-		return -1;
-	}
-
-	/* take account of sweep */
-	if (!sweep && extent > 0) {
-		extent -= TAU;
-	} else if (sweep && extent < 0) {
-		extent += TAU;
-	}
-
-	/* normalise start and extent */
-	extent = fmod(extent, TAU);
-	start = fmod(start, TAU);
-
-	/* convert the arc to unit circle bezier curves */
-	bzsegments = circle_arc_to_bezier(start, extent, bzpoints);
-
-	/* transform the bezier curves */
-	scale_rotate_translate_points(rx, ry,
-				      radangle,
-				      cx, cy,
-				      bzsegments * 6,
-				      bzpoints);
-
-	return bzsegments;
+	svgtiny_parse_attributes(node, &state, styles);
 }
 
 
@@ -534,11 +127,12 @@ static void svgtiny_grad_string_ref(struct svgtiny_parse_state_gradient *grad)
 	}
 }
 
+
 /**
  * Call this to clean up the strings in a gradient state.
  */
 static void svgtiny_grad_string_cleanup(
-		struct svgtiny_parse_state_gradient *grad)
+	struct svgtiny_parse_state_gradient *grad)
 {
 	if (grad->gradient_x1 != NULL) {
 		dom_string_unref(grad->gradient_x1);
@@ -583,10 +177,896 @@ static void svgtiny_cleanup_state_local(struct svgtiny_parse_state *state)
 }
 
 
+static void ignore_msg(uint32_t severity, void *ctx, const char *msg, ...)
+{
+	UNUSED(severity);
+	UNUSED(ctx);
+	UNUSED(msg);
+}
+
+
+/**
+ * Parse paint attributes, if present.
+ */
+static void
+svgtiny_parse_paint_attributes(dom_element *node,
+			       struct svgtiny_parse_state *state)
+{
+	struct svgtiny_parse_internal_operation ops[] = {
+		{
+			/* fill color */
+			state->interned_fill,
+			SVGTIOP_PAINT,
+			&state->fill_grad,
+			&state->fill
+		}, {
+			/* stroke color */
+			state->interned_stroke,
+			SVGTIOP_PAINT,
+			&state->stroke_grad,
+			&state->stroke
+		}, {
+			/* stroke width */
+			state->interned_stroke_width,
+			SVGTIOP_INTLENGTH,
+			&state->viewport_width,
+			&state->stroke_width
+		},{
+			NULL, SVGTIOP_NONE, NULL, NULL
+		},
+	};
+
+	svgtiny_parse_attributes(node, state, ops);
+	svgtiny_parse_inline_style(node, state, ops);
+}
+
+
+/**
+ * Parse font attributes, if present.
+ */
+static void
+svgtiny_parse_font_attributes(dom_element *node,
+			      struct svgtiny_parse_state *state)
+{
+	/* TODO: Implement this, it never used to be */
+	UNUSED(node);
+	UNUSED(state);
+#ifdef WRITTEN_THIS_PROPERLY
+	const xmlAttr *attr;
+
+	UNUSED(state);
+
+	for (attr = node->properties; attr; attr = attr->next) {
+		if (strcmp((const char *) attr->name, "font-size") == 0) {
+			/*if (css_parse_length(
+			  (const char *) attr->children->content,
+			  &state->style.font_size.value.length,
+			  true, true)) {
+			  state->style.font_size.size =
+			  CSS_FONT_SIZE_LENGTH;
+			  }*/
+		}
+        }
+#endif
+}
+
+
+/**
+ * Parse transform attributes, if present.
+ *
+ * http://www.w3.org/TR/SVG11/coords#TransformAttribute
+ */
+static void
+svgtiny_parse_transform_attributes(dom_element *node,
+				   struct svgtiny_parse_state *state)
+{
+	dom_string *attr;
+	dom_exception exc;
+
+	exc = dom_element_get_attribute(node, state->interned_transform, &attr);
+	if (exc == DOM_NO_ERR && attr != NULL) {
+		svgtiny_parse_transform(dom_string_data(attr),
+					dom_string_byte_length(attr),
+					&state->ctm);
+
+		dom_string_unref(attr);
+	}
+}
+
+
+/**
+ * Add a path to the svgtiny_diagram.
+ */
+static svgtiny_code
+svgtiny_add_path(float *p, unsigned int n, struct svgtiny_parse_state *state)
+{
+	struct svgtiny_shape *shape;
+	svgtiny_code res = svgtiny_OK;
+
+	if (state->fill == svgtiny_LINEAR_GRADIENT) {
+		/* adds a shape to fill the path with a linear gradient */
+		res = svgtiny_gradient_add_fill_path(p, n, state);
+	}
+	if (res != svgtiny_OK) {
+		free(p);
+		return res;
+	}
+
+	if (state->stroke == svgtiny_LINEAR_GRADIENT) {
+		/* adds a shape to stroke the path with a linear gradient */
+		res = svgtiny_gradient_add_stroke_path(p, n, state);
+	}
+	if (res != svgtiny_OK) {
+		free(p);
+		return res;
+	}
+
+	/* if stroke and fill are transparent do not add a shape */
+	if ((state->fill == svgtiny_TRANSPARENT) &&
+	    (state->stroke == svgtiny_TRANSPARENT)) {
+		free(p);
+		return res;
+	}
+
+	svgtiny_transform_path(p, n, state);
+
+	shape = svgtiny_add_shape(state);
+	if (shape == NULL) {
+		free(p);
+		return svgtiny_OUT_OF_MEMORY;
+	}
+	shape->path = p;
+	shape->path_length = n;
+	state->diagram->shape_count++;
+
+
+	return svgtiny_OK;
+}
+
+
+/**
+ * Parse a <path> element node.
+ *
+ * https://svgwg.org/svg2-draft/paths.html#PathElement
+ */
+static svgtiny_code
+svgtiny_parse_path(dom_element *path, struct svgtiny_parse_state state)
+{
+	svgtiny_code res;
+	dom_string *path_d_str;
+	dom_exception exc;
+	float *p; /* path elemets */
+	unsigned int i;
+
+	svgtiny_setup_state_local(&state);
+
+	svgtiny_parse_paint_attributes(path, &state);
+	svgtiny_parse_transform_attributes(path, &state);
+
+	/* read d attribute */
+	exc = dom_element_get_attribute(path, state.interned_d, &path_d_str);
+	if (exc != DOM_NO_ERR) {
+		state.diagram->error_line = -1; /* path->line; */
+		state.diagram->error_message = "path: error retrieving d attribute";
+		svgtiny_cleanup_state_local(&state);
+		return svgtiny_SVG_ERROR;
+	}
+
+	if (path_d_str == NULL) {
+		state.diagram->error_line = -1; /* path->line; */
+		state.diagram->error_message = "path: missing d attribute";
+		svgtiny_cleanup_state_local(&state);
+		return svgtiny_SVG_ERROR;
+	}
+
+	res = svgtiny_parse_path_data(dom_string_data(path_d_str),
+				      dom_string_byte_length(path_d_str),
+				      &p,
+		                      &i);
+	if (res != svgtiny_OK) {
+		svgtiny_cleanup_state_local(&state);
+		return res;
+	}
+
+	if (i <= 4) {
+		/* insufficient segments in path treated as none */
+		if (i > 0) {
+			free(p);
+		}
+		res = svgtiny_OK;
+	} else {
+		res = svgtiny_add_path(p, i, &state);
+	}
+
+	svgtiny_cleanup_state_local(&state);
+
+	return res;
+}
+
+
+/**
+ * Parse a <rect> element node.
+ *
+ * http://www.w3.org/TR/SVG11/shapes#RectElement
+ */
+static svgtiny_code
+svgtiny_parse_rect(dom_element *rect, struct svgtiny_parse_state state)
+{
+	svgtiny_code err;
+	float x, y, width, height;
+	float *p;
+
+	svgtiny_setup_state_local(&state);
+
+	svgtiny_parse_position_attributes(rect, state,
+					  &x, &y, &width, &height);
+	svgtiny_parse_paint_attributes(rect, &state);
+	svgtiny_parse_transform_attributes(rect, &state);
+
+	p = malloc(13 * sizeof p[0]);
+	if (!p) {
+		svgtiny_cleanup_state_local(&state);
+		return svgtiny_OUT_OF_MEMORY;
+	}
+
+	p[0] = svgtiny_PATH_MOVE;
+	p[1] = x;
+	p[2] = y;
+	p[3] = svgtiny_PATH_LINE;
+	p[4] = x + width;
+	p[5] = y;
+	p[6] = svgtiny_PATH_LINE;
+	p[7] = x + width;
+	p[8] = y + height;
+	p[9] = svgtiny_PATH_LINE;
+	p[10] = x;
+	p[11] = y + height;
+	p[12] = svgtiny_PATH_CLOSE;
+
+	err = svgtiny_add_path(p, 13, &state);
+
+	svgtiny_cleanup_state_local(&state);
+
+	return err;
+}
+
+
+/**
+ * Parse a <circle> element node.
+ */
+static svgtiny_code
+svgtiny_parse_circle(dom_element *circle, struct svgtiny_parse_state state)
+{
+	svgtiny_code err;
+	float x = 0, y = 0, r = -1;
+	float *p;
+	struct svgtiny_parse_internal_operation ops[] = {
+		{
+			state.interned_cx,
+			SVGTIOP_LENGTH,
+			&state.viewport_width,
+			&x
+		}, {
+			state.interned_cy,
+			SVGTIOP_LENGTH,
+			&state.viewport_height,
+			&y
+		}, {
+			state.interned_r,
+			SVGTIOP_LENGTH,
+			&state.viewport_width,
+			&r
+		}, {
+			NULL, SVGTIOP_NONE, NULL, NULL
+		},
+	};
+
+	svgtiny_setup_state_local(&state);
+
+	err = svgtiny_parse_attributes(circle, &state, ops);
+	if (err != svgtiny_OK) {
+		svgtiny_cleanup_state_local(&state);
+		return err;
+	}
+
+	svgtiny_parse_paint_attributes(circle, &state);
+	svgtiny_parse_transform_attributes(circle, &state);
+
+	if (r < 0) {
+		state.diagram->error_line = -1; /* circle->line; */
+		state.diagram->error_message = "circle: r missing or negative";
+		svgtiny_cleanup_state_local(&state);
+		return svgtiny_SVG_ERROR;
+	}
+	if (r == 0) {
+		svgtiny_cleanup_state_local(&state);
+		return svgtiny_OK;
+	}
+
+	p = malloc(32 * sizeof p[0]);
+	if (!p) {
+		svgtiny_cleanup_state_local(&state);
+		return svgtiny_OUT_OF_MEMORY;
+	}
+
+	p[0] = svgtiny_PATH_MOVE;
+	p[1] = x + r;
+	p[2] = y;
+	p[3] = svgtiny_PATH_BEZIER;
+	p[4] = x + r;
+	p[5] = y + r * KAPPA;
+	p[6] = x + r * KAPPA;
+	p[7] = y + r;
+	p[8] = x;
+	p[9] = y + r;
+	p[10] = svgtiny_PATH_BEZIER;
+	p[11] = x - r * KAPPA;
+	p[12] = y + r;
+	p[13] = x - r;
+	p[14] = y + r * KAPPA;
+	p[15] = x - r;
+	p[16] = y;
+	p[17] = svgtiny_PATH_BEZIER;
+	p[18] = x - r;
+	p[19] = y - r * KAPPA;
+	p[20] = x - r * KAPPA;
+	p[21] = y - r;
+	p[22] = x;
+	p[23] = y - r;
+	p[24] = svgtiny_PATH_BEZIER;
+	p[25] = x + r * KAPPA;
+	p[26] = y - r;
+	p[27] = x + r;
+	p[28] = y - r * KAPPA;
+	p[29] = x + r;
+	p[30] = y;
+	p[31] = svgtiny_PATH_CLOSE;
+
+	err = svgtiny_add_path(p, 32, &state);
+
+	svgtiny_cleanup_state_local(&state);
+
+	return err;
+}
+
+
+/**
+ * Parse an <ellipse> element node.
+ */
+static svgtiny_code
+svgtiny_parse_ellipse(dom_element *ellipse, struct svgtiny_parse_state state)
+{
+	svgtiny_code err;
+	float x = 0, y = 0, rx = -1, ry = -1;
+	float *p;
+	struct svgtiny_parse_internal_operation ops[] = {
+		{
+			state.interned_cx,
+			SVGTIOP_LENGTH,
+			&state.viewport_width,
+			&x
+		}, {
+			state.interned_cy,
+			SVGTIOP_LENGTH,
+			&state.viewport_height,
+			&y
+		}, {
+			state.interned_rx,
+			SVGTIOP_LENGTH,
+			&state.viewport_width,
+			&rx
+		}, {
+			state.interned_ry,
+			SVGTIOP_LENGTH,
+			&state.viewport_height,
+			&ry
+		}, {
+			NULL, SVGTIOP_NONE, NULL, NULL
+		},
+	};
+
+	svgtiny_setup_state_local(&state);
+
+	err = svgtiny_parse_attributes(ellipse, &state, ops);
+	if (err != svgtiny_OK) {
+		svgtiny_cleanup_state_local(&state);
+		return err;
+	}
+
+	svgtiny_parse_paint_attributes(ellipse, &state);
+	svgtiny_parse_transform_attributes(ellipse, &state);
+
+	if (rx < 0 || ry < 0) {
+		state.diagram->error_line = -1; /* ellipse->line; */
+		state.diagram->error_message = "ellipse: rx or ry missing "
+			"or negative";
+		svgtiny_cleanup_state_local(&state);
+		return svgtiny_SVG_ERROR;
+	}
+	if (rx == 0 || ry == 0) {
+		svgtiny_cleanup_state_local(&state);
+		return svgtiny_OK;
+	}
+
+	p = malloc(32 * sizeof p[0]);
+	if (!p) {
+		svgtiny_cleanup_state_local(&state);
+		return svgtiny_OUT_OF_MEMORY;
+	}
+
+	p[0] = svgtiny_PATH_MOVE;
+	p[1] = x + rx;
+	p[2] = y;
+	p[3] = svgtiny_PATH_BEZIER;
+	p[4] = x + rx;
+	p[5] = y + ry * KAPPA;
+	p[6] = x + rx * KAPPA;
+	p[7] = y + ry;
+	p[8] = x;
+	p[9] = y + ry;
+	p[10] = svgtiny_PATH_BEZIER;
+	p[11] = x - rx * KAPPA;
+	p[12] = y + ry;
+	p[13] = x - rx;
+	p[14] = y + ry * KAPPA;
+	p[15] = x - rx;
+	p[16] = y;
+	p[17] = svgtiny_PATH_BEZIER;
+	p[18] = x - rx;
+	p[19] = y - ry * KAPPA;
+	p[20] = x - rx * KAPPA;
+	p[21] = y - ry;
+	p[22] = x;
+	p[23] = y - ry;
+	p[24] = svgtiny_PATH_BEZIER;
+	p[25] = x + rx * KAPPA;
+	p[26] = y - ry;
+	p[27] = x + rx;
+	p[28] = y - ry * KAPPA;
+	p[29] = x + rx;
+	p[30] = y;
+	p[31] = svgtiny_PATH_CLOSE;
+
+	err = svgtiny_add_path(p, 32, &state);
+
+	svgtiny_cleanup_state_local(&state);
+
+	return err;
+}
+
+
+/**
+ * Parse a <line> element node.
+ */
+static svgtiny_code
+svgtiny_parse_line(dom_element *line, struct svgtiny_parse_state state)
+{
+	svgtiny_code err;
+	float x1 = 0, y1 = 0, x2 = 0, y2 = 0;
+	float *p;
+	struct svgtiny_parse_internal_operation ops[] = {
+		{
+			state.interned_x1,
+			SVGTIOP_LENGTH,
+			&state.viewport_width,
+			&x1
+		}, {
+			state.interned_y1,
+			SVGTIOP_LENGTH,
+			&state.viewport_height,
+			&y1
+		}, {
+			state.interned_x2,
+			SVGTIOP_LENGTH,
+			&state.viewport_width,
+			&x2
+		}, {
+			state.interned_y2,
+			SVGTIOP_LENGTH,
+			&state.viewport_height,
+			&y2
+		}, {
+			NULL, SVGTIOP_NONE, NULL, NULL
+		},
+	};
+
+	svgtiny_setup_state_local(&state);
+
+	err = svgtiny_parse_attributes(line, &state, ops);
+	if (err != svgtiny_OK) {
+		svgtiny_cleanup_state_local(&state);
+		return err;
+	}
+
+	svgtiny_parse_paint_attributes(line, &state);
+	svgtiny_parse_transform_attributes(line, &state);
+
+	p = malloc(7 * sizeof p[0]);
+	if (!p) {
+		svgtiny_cleanup_state_local(&state);
+		return svgtiny_OUT_OF_MEMORY;
+	}
+
+	p[0] = svgtiny_PATH_MOVE;
+	p[1] = x1;
+	p[2] = y1;
+	p[3] = svgtiny_PATH_LINE;
+	p[4] = x2;
+	p[5] = y2;
+	p[6] = svgtiny_PATH_CLOSE;
+
+	err = svgtiny_add_path(p, 7, &state);
+
+	svgtiny_cleanup_state_local(&state);
+
+	return err;
+}
+
+
+/**
+ * Parse a <polyline> or <polygon> element node.
+ *
+ * http://www.w3.org/TR/SVG11/shapes#PolylineElement
+ * http://www.w3.org/TR/SVG11/shapes#PolygonElement
+ */
+static svgtiny_code
+svgtiny_parse_poly(dom_element *poly,
+		   struct svgtiny_parse_state state,
+		   bool polygon)
+{
+	svgtiny_code err;
+	dom_string *points_str;
+	dom_exception exc;
+	float *pointv;
+	unsigned int pointc;
+
+	svgtiny_setup_state_local(&state);
+
+	svgtiny_parse_paint_attributes(poly, &state);
+	svgtiny_parse_transform_attributes(poly, &state);
+
+	exc = dom_element_get_attribute(poly, state.interned_points,
+					&points_str);
+	if (exc != DOM_NO_ERR) {
+		svgtiny_cleanup_state_local(&state);
+		return svgtiny_LIBDOM_ERROR;
+	}
+
+	if (points_str == NULL) {
+		state.diagram->error_line = -1; /* poly->line; */
+		state.diagram->error_message =
+			"polyline/polygon: missing points attribute";
+		svgtiny_cleanup_state_local(&state);
+		return svgtiny_SVG_ERROR;
+	}
+
+	/* allocate space for path: it will never have more elements than bytes
+	 * in the string.
+	 */
+	pointc = dom_string_byte_length(points_str);
+	pointv = malloc(sizeof pointv[0] * pointc);
+	if (pointv == NULL) {
+		svgtiny_cleanup_state_local(&state);
+		return svgtiny_OUT_OF_MEMORY;
+	}
+
+	err = svgtiny_parse_poly_points(dom_string_data(points_str),
+					dom_string_byte_length(points_str),
+					pointv,
+					&pointc);
+	dom_string_unref(points_str);
+	if (err != svgtiny_OK) {
+		free(pointv);
+		state.diagram->error_line = -1; /* poly->line; */
+		state.diagram->error_message =
+			"polyline/polygon: failed to parse points";
+	} else {
+		if (pointc > 0) {
+			pointv[0] = svgtiny_PATH_MOVE;
+		}
+		if (polygon) {
+			pointv[pointc++] = svgtiny_PATH_CLOSE;
+		}
+
+		err = svgtiny_add_path(pointv, pointc, &state);
+	}
+	svgtiny_cleanup_state_local(&state);
+
+	return err;
+}
+
+
+/**
+ * Parse a <text> or <tspan> element node.
+ */
+static svgtiny_code
+svgtiny_parse_text(dom_element *text, struct svgtiny_parse_state state)
+{
+	float x, y, width, height;
+	float px, py;
+	dom_node *child;
+	dom_exception exc;
+
+	svgtiny_setup_state_local(&state);
+
+	svgtiny_parse_position_attributes(text, state,
+					  &x, &y, &width, &height);
+	svgtiny_parse_font_attributes(text, &state);
+	svgtiny_parse_transform_attributes(text, &state);
+
+	px = state.ctm.a * x + state.ctm.c * y + state.ctm.e;
+	py = state.ctm.b * x + state.ctm.d * y + state.ctm.f;
+/*	state.ctm.e = px - state.origin_x; */
+/*	state.ctm.f = py - state.origin_y; */
+
+	/*struct css_style style = state.style;
+	  style.font_size.value.length.value *= state.ctm.a;*/
+
+        exc = dom_node_get_first_child(text, &child);
+	if (exc != DOM_NO_ERR) {
+		return svgtiny_LIBDOM_ERROR;
+		svgtiny_cleanup_state_local(&state);
+	}
+	while (child != NULL) {
+		dom_node *next;
+		dom_node_type nodetype;
+		svgtiny_code code = svgtiny_OK;
+
+		exc = dom_node_get_node_type(child, &nodetype);
+		if (exc != DOM_NO_ERR) {
+			dom_node_unref(child);
+			svgtiny_cleanup_state_local(&state);
+			return svgtiny_LIBDOM_ERROR;
+		}
+		if (nodetype == DOM_ELEMENT_NODE) {
+			dom_string *nodename;
+			exc = dom_node_get_node_name(child, &nodename);
+			if (exc != DOM_NO_ERR) {
+				dom_node_unref(child);
+				svgtiny_cleanup_state_local(&state);
+				return svgtiny_LIBDOM_ERROR;
+			}
+			if (dom_string_caseless_isequal(nodename,
+							state.interned_tspan))
+				code = svgtiny_parse_text((dom_element *)child,
+							  state);
+			dom_string_unref(nodename);
+		} else if (nodetype == DOM_TEXT_NODE) {
+			struct svgtiny_shape *shape = svgtiny_add_shape(&state);
+			dom_string *content;
+			if (shape == NULL) {
+				dom_node_unref(child);
+				svgtiny_cleanup_state_local(&state);
+				return svgtiny_OUT_OF_MEMORY;
+			}
+			exc = dom_text_get_whole_text(child, &content);
+			if (exc != DOM_NO_ERR) {
+				dom_node_unref(child);
+				svgtiny_cleanup_state_local(&state);
+				return svgtiny_LIBDOM_ERROR;
+			}
+			if (content != NULL) {
+				shape->text = strndup(dom_string_data(content),
+						      dom_string_byte_length(content));
+				dom_string_unref(content);
+			} else {
+				shape->text = strdup("");
+			}
+			shape->text_x = px;
+			shape->text_y = py;
+			state.diagram->shape_count++;
+		}
+
+		if (code != svgtiny_OK) {
+			dom_node_unref(child);
+			svgtiny_cleanup_state_local(&state);
+			return code;
+		}
+		exc = dom_node_get_next_sibling(child, &next);
+		dom_node_unref(child);
+		if (exc != DOM_NO_ERR) {
+			svgtiny_cleanup_state_local(&state);
+			return svgtiny_LIBDOM_ERROR;
+		}
+		child = next;
+	}
+
+	svgtiny_cleanup_state_local(&state);
+
+	return svgtiny_OK;
+}
+
+
+/**
+ * Parse a <svg> or <g> element node.
+ */
+static svgtiny_code
+svgtiny_parse_svg(dom_element *svg, struct svgtiny_parse_state state)
+{
+	float x, y, width, height;
+	dom_string *view_box;
+	dom_element *child;
+	dom_exception exc;
+
+	svgtiny_setup_state_local(&state);
+
+	svgtiny_parse_position_attributes(svg, state, &x, &y, &width, &height);
+	svgtiny_parse_paint_attributes(svg, &state);
+	svgtiny_parse_font_attributes(svg, &state);
+
+	exc = dom_element_get_attribute(svg, state.interned_viewBox,
+					&view_box);
+	if (exc != DOM_NO_ERR) {
+		svgtiny_cleanup_state_local(&state);
+		return svgtiny_LIBDOM_ERROR;
+	}
+
+	if (view_box) {
+		svgtiny_parse_viewbox(dom_string_data(view_box),
+				      dom_string_byte_length(view_box),
+				      state.viewport_width,
+				      state.viewport_height,
+				      &state.ctm);
+		dom_string_unref(view_box);
+	}
+
+	svgtiny_parse_transform_attributes(svg, &state);
+
+	exc = dom_node_get_first_child(svg, (dom_node **) (void *) &child);
+	if (exc != DOM_NO_ERR) {
+		svgtiny_cleanup_state_local(&state);
+		return svgtiny_LIBDOM_ERROR;
+	}
+	while (child != NULL) {
+		dom_element *next;
+		dom_node_type nodetype;
+		svgtiny_code code = svgtiny_OK;
+
+		exc = dom_node_get_node_type(child, &nodetype);
+		if (exc != DOM_NO_ERR) {
+			dom_node_unref(child);
+			return svgtiny_LIBDOM_ERROR;
+		}
+		if (nodetype == DOM_ELEMENT_NODE) {
+			dom_string *nodename;
+			exc = dom_node_get_node_name(child, &nodename);
+			if (exc != DOM_NO_ERR) {
+				dom_node_unref(child);
+				svgtiny_cleanup_state_local(&state);
+				return svgtiny_LIBDOM_ERROR;
+			}
+			if (dom_string_caseless_isequal(state.interned_svg,
+							nodename))
+				code = svgtiny_parse_svg(child, state);
+			else if (dom_string_caseless_isequal(state.interned_g,
+							     nodename))
+				code = svgtiny_parse_svg(child, state);
+			else if (dom_string_caseless_isequal(state.interned_a,
+							     nodename))
+				code = svgtiny_parse_svg(child, state);
+			else if (dom_string_caseless_isequal(state.interned_path,
+							     nodename))
+				code = svgtiny_parse_path(child, state);
+			else if (dom_string_caseless_isequal(state.interned_rect,
+							     nodename))
+				code = svgtiny_parse_rect(child, state);
+			else if (dom_string_caseless_isequal(state.interned_circle,
+							     nodename))
+				code = svgtiny_parse_circle(child, state);
+			else if (dom_string_caseless_isequal(state.interned_ellipse,
+							     nodename))
+				code = svgtiny_parse_ellipse(child, state);
+			else if (dom_string_caseless_isequal(state.interned_line,
+							     nodename))
+				code = svgtiny_parse_line(child, state);
+			else if (dom_string_caseless_isequal(state.interned_polyline,
+							     nodename))
+				code = svgtiny_parse_poly(child, state, false);
+			else if (dom_string_caseless_isequal(state.interned_polygon,
+							     nodename))
+				code = svgtiny_parse_poly(child, state, true);
+			else if (dom_string_caseless_isequal(state.interned_text,
+							     nodename))
+				code = svgtiny_parse_text(child, state);
+			dom_string_unref(nodename);
+		}
+		if (code != svgtiny_OK) {
+			dom_node_unref(child);
+			svgtiny_cleanup_state_local(&state);
+			return code;
+		}
+		exc = dom_node_get_next_sibling(child,
+						(dom_node **) (void *) &next);
+		dom_node_unref(child);
+		if (exc != DOM_NO_ERR) {
+			svgtiny_cleanup_state_local(&state);
+			return svgtiny_LIBDOM_ERROR;
+		}
+		child = next;
+	}
+
+	svgtiny_cleanup_state_local(&state);
+	return svgtiny_OK;
+}
+
+
+/**
+ * Add a svgtiny_shape to the svgtiny_diagram.
+ *
+ * library internal interface
+ */
+struct svgtiny_shape *svgtiny_add_shape(struct svgtiny_parse_state *state)
+{
+	struct svgtiny_shape *shape;
+
+	shape = realloc(state->diagram->shape,
+			(state->diagram->shape_count + 1) *
+			sizeof (state->diagram->shape[0]));
+	if (shape != NULL) {
+		state->diagram->shape = shape;
+
+		shape += state->diagram->shape_count;
+		shape->path = 0;
+		shape->path_length = 0;
+		shape->text = 0;
+		shape->fill = state->fill;
+		shape->stroke = state->stroke;
+		shape->stroke_width = lroundf((float) state->stroke_width *
+					      (state->ctm.a + state->ctm.d) / 2.0);
+		if (0 < state->stroke_width && shape->stroke_width == 0)
+			shape->stroke_width = 1;
+	}
+	return shape;
+}
+
+
+/**
+ * Apply the current transformation matrix to a path.
+ *
+ * library internal interface
+ */
+void
+svgtiny_transform_path(float *p,
+		       unsigned int n,
+		       struct svgtiny_parse_state *state)
+{
+	unsigned int j;
+
+	for (j = 0; j != n; ) {
+		unsigned int points = 0;
+		unsigned int k;
+		switch ((int) p[j]) {
+		case svgtiny_PATH_MOVE:
+		case svgtiny_PATH_LINE:
+			points = 1;
+			break;
+		case svgtiny_PATH_CLOSE:
+			points = 0;
+			break;
+		case svgtiny_PATH_BEZIER:
+			points = 3;
+			break;
+		default:
+			assert(0);
+		}
+		j++;
+		for (k = 0; k != points; k++) {
+			float x0 = p[j], y0 = p[j + 1];
+			float x = state->ctm.a * x0 + state->ctm.c * y0 +
+				state->ctm.e;
+			float y = state->ctm.b * x0 + state->ctm.d * y0 +
+				state->ctm.f;
+			p[j] = x;
+			p[j + 1] = y;
+			j += 2;
+		}
+	}
+}
+
+
 /**
  * Create a new svgtiny_diagram structure.
  */
-
 struct svgtiny_diagram *svgtiny_create(void)
 {
 	struct svgtiny_diagram *diagram;
@@ -601,21 +1081,12 @@ struct svgtiny_diagram *svgtiny_create(void)
 }
 
 
-static void ignore_msg(uint32_t severity, void *ctx, const char *msg, ...)
-{
-	UNUSED(severity);
-	UNUSED(ctx);
-	UNUSED(msg);
-}
-
-
 /**
  * Parse a block of memory into a svgtiny_diagram.
  */
-
 svgtiny_code svgtiny_parse(struct svgtiny_diagram *diagram,
-		const char *buffer, size_t size, const char *url,
-		int viewport_width, int viewport_height)
+			   const char *buffer, size_t size, const char *url,
+			   int viewport_width, int viewport_height)
 {
 	dom_document *document;
 	dom_exception exc;
@@ -726,7 +1197,7 @@ svgtiny_code svgtiny_parse(struct svgtiny_diagram *diagram,
 	state.ctm.e = 0; /*x;*/
 	state.ctm.f = 0; /*y;*/
 	/*state.style = css_base_style;
-	state.style.font_size.value.length.value = option_font_size * 0.1;*/
+	  state.style.font_size.value.length.value = option_font_size * 0.1;*/
 	state.fill = 0x000000;
 	state.stroke = svgtiny_TRANSPARENT;
 	state.stroke_width = 1;
@@ -749,1237 +1220,8 @@ cleanup:
 
 
 /**
- * Parse a <svg> or <g> element node.
- */
-
-svgtiny_code svgtiny_parse_svg(dom_element *svg,
-		struct svgtiny_parse_state state)
-{
-	float x, y, width, height;
-	dom_string *view_box;
-	dom_element *child;
-	dom_exception exc;
-
-	svgtiny_setup_state_local(&state);
-
-	svgtiny_parse_position_attributes(svg, state, &x, &y, &width, &height);
-	svgtiny_parse_paint_attributes(svg, &state);
-	svgtiny_parse_font_attributes(svg, &state);
-
-	exc = dom_element_get_attribute(svg, state.interned_viewBox,
-					&view_box);
-	if (exc != DOM_NO_ERR) {
-		svgtiny_cleanup_state_local(&state);
-		return svgtiny_LIBDOM_ERROR;
-	}
-
-	if (view_box) {
-		svgtiny_parse_viewbox(dom_string_data(view_box),
-				      dom_string_byte_length(view_box),
-				      state.viewport_width,
-				      state.viewport_height,
-				      &state.ctm);
-		dom_string_unref(view_box);
-	}
-
-	svgtiny_parse_transform_attributes(svg, &state);
-
-	exc = dom_node_get_first_child(svg, (dom_node **) (void *) &child);
-	if (exc != DOM_NO_ERR) {
-		svgtiny_cleanup_state_local(&state);
-		return svgtiny_LIBDOM_ERROR;
-	}
-	while (child != NULL) {
-		dom_element *next;
-		dom_node_type nodetype;
-		svgtiny_code code = svgtiny_OK;
-
-		exc = dom_node_get_node_type(child, &nodetype);
-		if (exc != DOM_NO_ERR) {
-			dom_node_unref(child);
-			return svgtiny_LIBDOM_ERROR;
-		}
-		if (nodetype == DOM_ELEMENT_NODE) {
-			dom_string *nodename;
-			exc = dom_node_get_node_name(child, &nodename);
-			if (exc != DOM_NO_ERR) {
-				dom_node_unref(child);
-				svgtiny_cleanup_state_local(&state);
-				return svgtiny_LIBDOM_ERROR;
-			}
-			if (dom_string_caseless_isequal(state.interned_svg,
-							nodename))
-				code = svgtiny_parse_svg(child, state);
-			else if (dom_string_caseless_isequal(state.interned_g,
-							     nodename))
-				code = svgtiny_parse_svg(child, state);
-			else if (dom_string_caseless_isequal(state.interned_a,
-							     nodename))
-				code = svgtiny_parse_svg(child, state);
-			else if (dom_string_caseless_isequal(state.interned_path,
-							     nodename))
-				code = svgtiny_parse_path(child, state);
-			else if (dom_string_caseless_isequal(state.interned_rect,
-							     nodename))
-				code = svgtiny_parse_rect(child, state);
-			else if (dom_string_caseless_isequal(state.interned_circle,
-							     nodename))
-				code = svgtiny_parse_circle(child, state);
-			else if (dom_string_caseless_isequal(state.interned_ellipse,
-							     nodename))
-				code = svgtiny_parse_ellipse(child, state);
-			else if (dom_string_caseless_isequal(state.interned_line,
-							     nodename))
-				code = svgtiny_parse_line(child, state);
-			else if (dom_string_caseless_isequal(state.interned_polyline,
-							     nodename))
-				code = svgtiny_parse_poly(child, state, false);
-			else if (dom_string_caseless_isequal(state.interned_polygon,
-							     nodename))
-				code = svgtiny_parse_poly(child, state, true);
-			else if (dom_string_caseless_isequal(state.interned_text,
-							     nodename))
-				code = svgtiny_parse_text(child, state);
-			dom_string_unref(nodename);
-		}
-		if (code != svgtiny_OK) {
-			dom_node_unref(child);
-			svgtiny_cleanup_state_local(&state);
-			return code;
-		}
-		exc = dom_node_get_next_sibling(child,
-						(dom_node **) (void *) &next);
-		dom_node_unref(child);
-		if (exc != DOM_NO_ERR) {
-			svgtiny_cleanup_state_local(&state);
-			return svgtiny_LIBDOM_ERROR;
-		}
-		child = next;
-	}
-
-	svgtiny_cleanup_state_local(&state);
-	return svgtiny_OK;
-}
-
-
-/**
- * Parse a <path> element node.
- *
- * http://www.w3.org/TR/SVG11/paths#PathElement
- */
-
-svgtiny_code svgtiny_parse_path(dom_element *path,
-		struct svgtiny_parse_state state)
-{
-	svgtiny_code err;
-	dom_string *path_d_str;
-	dom_exception exc;
-	char *s, *path_d;
-	float *p; /* path elemets */
-        unsigned int palloc; /* number of path elements allocated */
-	unsigned int i;
-	float last_x = 0, last_y = 0;
-	float last_cubic_x = 0, last_cubic_y = 0;
-	float last_quad_x = 0, last_quad_y = 0;
-	float subpath_first_x = 0, subpath_first_y = 0;
-
-	svgtiny_setup_state_local(&state);
-
-	svgtiny_parse_paint_attributes(path, &state);
-	svgtiny_parse_transform_attributes(path, &state);
-
-	/* read d attribute */
-	exc = dom_element_get_attribute(path, state.interned_d, &path_d_str);
-	if (exc != DOM_NO_ERR) {
-		state.diagram->error_line = -1; /* path->line; */
-		state.diagram->error_message = "path: error retrieving d attribute";
-		svgtiny_cleanup_state_local(&state);
-		return svgtiny_SVG_ERROR;
-	}
-
-	if (path_d_str == NULL) {
-		state.diagram->error_line = -1; /* path->line; */
-		state.diagram->error_message = "path: missing d attribute";
-		svgtiny_cleanup_state_local(&state);
-		return svgtiny_SVG_ERROR;
-	}
-
-        /* empty path is permitted it just disables the path */
-        palloc = dom_string_byte_length(path_d_str);
-        if (palloc == 0) {
-		dom_string_unref(path_d_str);
-		svgtiny_cleanup_state_local(&state);
-		return svgtiny_OK;
-        }
-
-        /* local copy of the path data allowing in-place modification */
-	s = path_d = strndup(dom_string_data(path_d_str), palloc);
-	dom_string_unref(path_d_str);
-	if (s == NULL) {
-		svgtiny_cleanup_state_local(&state);
-		return svgtiny_OUT_OF_MEMORY;
-	}
-
-        /* ensure path element allocation is sensibly bounded */
-        if (palloc < 8) {
-            palloc = 8;
-        } else if (palloc > 64) {
-            palloc = palloc / 2;
-        }
-
-	/* allocate initial space for path elements */
-	p = malloc(sizeof p[0] * palloc);
-	if (p == NULL) {
-		free(path_d);
-		svgtiny_cleanup_state_local(&state);
-		return svgtiny_OUT_OF_MEMORY;
-	}
-
-	/* parse d and build path */
-	for (i = 0; s[i]; i++)
-		if (s[i] == ',')
-			s[i] = ' ';
-	i = 0;
-	while (*s) {
-		char command[2];
-		int plot_command;
-		float x, y, x1, y1, x2, y2, rx, ry, rotation, large_arc, sweep;
-		int n;
-
-                /* Ensure there is sufficient space for path elements */
-#define ALLOC_PATH_ELEMENTS(NUM_ELEMENTS)                               \
-                do {                                                    \
-                        if ((palloc - i) < NUM_ELEMENTS) {              \
-                                float *tp;                              \
-                                palloc = (palloc * 2) + (palloc / 2);   \
-                                tp = realloc(p, sizeof p[0] * palloc);  \
-                                if (tp == NULL) {                       \
-                                        free(p);                        \
-                                        free(path_d);                   \
-                                        svgtiny_cleanup_state_local(&state); \
-                                        return svgtiny_OUT_OF_MEMORY;   \
-                                }                                       \
-                                p = tp;                                 \
-                        }                                               \
-                } while(0)
-
-
-		/* moveto (M, m), lineto (L, l) (2 arguments) */
-		if (sscanf(s, " %1[MmLl] %f %f %n", command, &x, &y, &n) == 3) {
-			/*LOG(("moveto or lineto"));*/
-			if (*command == 'M' || *command == 'm')
-				plot_command = svgtiny_PATH_MOVE;
-			else
-				plot_command = svgtiny_PATH_LINE;
-			do {
-                                ALLOC_PATH_ELEMENTS(3);
-				p[i++] = plot_command;
-				if ('a' <= *command) {
-					x += last_x;
-					y += last_y;
-				}
-				if (plot_command == svgtiny_PATH_MOVE) {
-					subpath_first_x = x;
-					subpath_first_y = y;
-				}
-				p[i++] = last_cubic_x = last_quad_x = last_x
-						= x;
-				p[i++] = last_cubic_y = last_quad_y = last_y
-						= y;
-				s += n;
-				plot_command = svgtiny_PATH_LINE;
-			} while (sscanf(s, "%f %f %n", &x, &y, &n) == 2);
-
-		/* closepath (Z, z) (no arguments) */
-		} else if (sscanf(s, " %1[Zz] %n", command, &n) == 1) {
-			/*LOG(("closepath"));*/
-                        ALLOC_PATH_ELEMENTS(1);
-
-			p[i++] = svgtiny_PATH_CLOSE;
-			s += n;
-			last_cubic_x = last_quad_x = last_x = subpath_first_x;
-			last_cubic_y = last_quad_y = last_y = subpath_first_y;
-
-		/* horizontal lineto (H, h) (1 argument) */
-		} else if (sscanf(s, " %1[Hh] %f %n", command, &x, &n) == 2) {
-			/*LOG(("horizontal lineto"));*/
-			do {
-                                ALLOC_PATH_ELEMENTS(3);
-
-				p[i++] = svgtiny_PATH_LINE;
-				if (*command == 'h')
-					x += last_x;
-				p[i++] = last_cubic_x = last_quad_x = last_x
-						= x;
-				p[i++] = last_cubic_y = last_quad_y = last_y;
-				s += n;
-			} while (sscanf(s, "%f %n", &x, &n) == 1);
-
-		/* vertical lineto (V, v) (1 argument) */
-		} else if (sscanf(s, " %1[Vv] %f %n", command, &y, &n) == 2) {
-			/*LOG(("vertical lineto"));*/
-			do {
-                                ALLOC_PATH_ELEMENTS(3);
-
-				p[i++] = svgtiny_PATH_LINE;
-				if (*command == 'v')
-					y += last_y;
-				p[i++] = last_cubic_x = last_quad_x = last_x;
-				p[i++] = last_cubic_y = last_quad_y = last_y
-						= y;
-				s += n;
-			} while (sscanf(s, "%f %n", &y, &n) == 1);
-
-		/* curveto (C, c) (6 arguments) */
-		} else if (sscanf(s, " %1[Cc] %f %f %f %f %f %f %n", command,
-				&x1, &y1, &x2, &y2, &x, &y, &n) == 7) {
-			/*LOG(("curveto"));*/
-			do {
-                                ALLOC_PATH_ELEMENTS(7);
-
-				p[i++] = svgtiny_PATH_BEZIER;
-				if (*command == 'c') {
-					x1 += last_x;
-					y1 += last_y;
-					x2 += last_x;
-					y2 += last_y;
-					x += last_x;
-					y += last_y;
-				}
-				p[i++] = x1;
-				p[i++] = y1;
-				p[i++] = last_cubic_x = x2;
-				p[i++] = last_cubic_y = y2;
-				p[i++] = last_quad_x = last_x = x;
-				p[i++] = last_quad_y = last_y = y;
-				s += n;
-			} while (sscanf(s, "%f %f %f %f %f %f %n",
-					&x1, &y1, &x2, &y2, &x, &y, &n) == 6);
-
-		/* shorthand/smooth curveto (S, s) (4 arguments) */
-		} else if (sscanf(s, " %1[Ss] %f %f %f %f %n", command,
-				&x2, &y2, &x, &y, &n) == 5) {
-			/*LOG(("shorthand/smooth curveto"));*/
-			do {
-                                ALLOC_PATH_ELEMENTS(7);
-
-				p[i++] = svgtiny_PATH_BEZIER;
-				x1 = last_x + (last_x - last_cubic_x);
-				y1 = last_y + (last_y - last_cubic_y);
-				if (*command == 's') {
-					x2 += last_x;
-					y2 += last_y;
-					x += last_x;
-					y += last_y;
-				}
-				p[i++] = x1;
-				p[i++] = y1;
-				p[i++] = last_cubic_x = x2;
-				p[i++] = last_cubic_y = y2;
-				p[i++] = last_quad_x = last_x = x;
-				p[i++] = last_quad_y = last_y = y;
-				s += n;
-			} while (sscanf(s, "%f %f %f %f %n",
-					&x2, &y2, &x, &y, &n) == 4);
-
-		/* quadratic Bezier curveto (Q, q) (4 arguments) */
-		} else if (sscanf(s, " %1[Qq] %f %f %f %f %n", command,
-				&x1, &y1, &x, &y, &n) == 5) {
-			/*LOG(("quadratic Bezier curveto"));*/
-			do {
-                                ALLOC_PATH_ELEMENTS(7);
-
-				p[i++] = svgtiny_PATH_BEZIER;
-				last_quad_x = x1;
-				last_quad_y = y1;
-				if (*command == 'q') {
-					x1 += last_x;
-					y1 += last_y;
-					x += last_x;
-					y += last_y;
-				}
-				p[i++] = 1./3 * last_x + 2./3 * x1;
-				p[i++] = 1./3 * last_y + 2./3 * y1;
-				p[i++] = 2./3 * x1 + 1./3 * x;
-				p[i++] = 2./3 * y1 + 1./3 * y;
-				p[i++] = last_cubic_x = last_x = x;
-				p[i++] = last_cubic_y = last_y = y;
-				s += n;
-			} while (sscanf(s, "%f %f %f %f %n",
-					&x1, &y1, &x, &y, &n) == 4);
-
-		/* shorthand/smooth quadratic Bezier curveto (T, t)
-		   (2 arguments) */
-		} else if (sscanf(s, " %1[Tt] %f %f %n", command,
-				&x, &y, &n) == 3) {
-			/*LOG(("shorthand/smooth quadratic Bezier curveto"));*/
-			do {
-                                ALLOC_PATH_ELEMENTS(7);
-
-				p[i++] = svgtiny_PATH_BEZIER;
-				x1 = last_x + (last_x - last_quad_x);
-				y1 = last_y + (last_y - last_quad_y);
-				last_quad_x = x1;
-				last_quad_y = y1;
-				if (*command == 't') {
-					x1 += last_x;
-					y1 += last_y;
-					x += last_x;
-					y += last_y;
-				}
-				p[i++] = 1./3 * last_x + 2./3 * x1;
-				p[i++] = 1./3 * last_y + 2./3 * y1;
-				p[i++] = 2./3 * x1 + 1./3 * x;
-				p[i++] = 2./3 * y1 + 1./3 * y;
-				p[i++] = last_cubic_x = last_x = x;
-				p[i++] = last_cubic_y = last_y = y;
-				s += n;
-			} while (sscanf(s, "%f %f %n",
-					&x, &y, &n) == 2);
-
-		/* elliptical arc (A, a) (7 arguments) */
-		} else if (sscanf(s, " %1[Aa] %f %f %f %f %f %f %f %n", command,
-				&rx, &ry, &rotation, &large_arc, &sweep,
-				&x, &y, &n) == 8) {
-			do {
-				int bzsegments;
-				double bzpoints[6*4]; /* allow for up to four bezier segments per arc */
-
-				if (*command == 'a') {
-					x += last_x;
-					y += last_y;
-				}
-
-				bzsegments = svgarc_to_bezier(last_x, last_y,
-							      x, y,
-							      rx, ry,
-							      rotation,
-							      large_arc,
-							      sweep,
-							      bzpoints);
-				if (bzsegments == -1) {
-					/* draw a line */
-					ALLOC_PATH_ELEMENTS(3);
-					p[i++] = svgtiny_PATH_LINE;
-					p[i++] = x;
-					p[i++] = y;
-				} else if (bzsegments > 0) {
-					int bzpnt;
-					ALLOC_PATH_ELEMENTS((unsigned int)bzsegments * 7);
-					for (bzpnt = 0;bzpnt < (bzsegments * 6); bzpnt+=6) {
-						p[i++] = svgtiny_PATH_BEZIER;
-						p[i++] = bzpoints[bzpnt];
-						p[i++] = bzpoints[bzpnt+1];
-						p[i++] = bzpoints[bzpnt+2];
-						p[i++] = bzpoints[bzpnt+3];
-						p[i++] = bzpoints[bzpnt+4];
-						p[i++] = bzpoints[bzpnt+5];
-					}
-				}
-				if (bzsegments != 0) {
-					last_cubic_x = last_quad_x = last_x = p[i-2];
-					last_cubic_y = last_quad_y = last_y = p[i-1];
-				}
-
-
-				s += n;
-			} while (sscanf(s, "%f %f %f %f %f %f %f %n",
-				&rx, &ry, &rotation, &large_arc, &sweep,
-				&x, &y, &n) == 7);
-
-		} else {
-			/* fprintf(stderr, "parse failed at \"%s\"\n", s); */
-			break;
-		}
-	}
-
-	free(path_d);
-
-	if (i <= 4) {
-		/* no real segments in path */
-		free(p);
-		svgtiny_cleanup_state_local(&state);
-		return svgtiny_OK;
-	}
-
-        /* resize path element array to not be over allocated */
-        if (palloc != i) {
-                float *tp;
-
-                /* try the resize, if it fails just continue to use the old
-                 * allocation
-                 */
-                tp = realloc(p, sizeof p[0] * i);
-                if (tp != NULL) {
-                        p = tp;
-                }
-        }
-
-	err = svgtiny_add_path(p, i, &state);
-
-	svgtiny_cleanup_state_local(&state);
-
-	return err;
-}
-
-
-/**
- * Parse a <rect> element node.
- *
- * http://www.w3.org/TR/SVG11/shapes#RectElement
- */
-
-svgtiny_code svgtiny_parse_rect(dom_element *rect,
-		struct svgtiny_parse_state state)
-{
-	svgtiny_code err;
-	float x, y, width, height;
-	float *p;
-
-	svgtiny_setup_state_local(&state);
-
-	svgtiny_parse_position_attributes(rect, state,
-			&x, &y, &width, &height);
-	svgtiny_parse_paint_attributes(rect, &state);
-	svgtiny_parse_transform_attributes(rect, &state);
-
-	p = malloc(13 * sizeof p[0]);
-	if (!p) {
-		svgtiny_cleanup_state_local(&state);
-		return svgtiny_OUT_OF_MEMORY;
-	}
-
-	p[0] = svgtiny_PATH_MOVE;
-	p[1] = x;
-	p[2] = y;
-	p[3] = svgtiny_PATH_LINE;
-	p[4] = x + width;
-	p[5] = y;
-	p[6] = svgtiny_PATH_LINE;
-	p[7] = x + width;
-	p[8] = y + height;
-	p[9] = svgtiny_PATH_LINE;
-	p[10] = x;
-	p[11] = y + height;
-	p[12] = svgtiny_PATH_CLOSE;
-
-	err = svgtiny_add_path(p, 13, &state);
-
-	svgtiny_cleanup_state_local(&state);
-
-	return err;
-}
-
-
-/**
- * Parse a <circle> element node.
- */
-
-svgtiny_code svgtiny_parse_circle(dom_element *circle,
-		struct svgtiny_parse_state state)
-{
-	svgtiny_code err;
-	float x = 0, y = 0, r = -1;
-	float *p;
-	struct svgtiny_parse_internal_operation ops[] = {
-		{
-			state.interned_cx,
-			SVGTIOP_LENGTH,
-			&state.viewport_width,
-			&x
-		}, {
-			state.interned_cy,
-			SVGTIOP_LENGTH,
-			&state.viewport_height,
-			&y
-		}, {
-			state.interned_r,
-			SVGTIOP_LENGTH,
-			&state.viewport_width,
-			&r
-		}, {
-			NULL, SVGTIOP_NONE, NULL, NULL
-		},
-	};
-
-	svgtiny_setup_state_local(&state);
-
-	err = svgtiny_parse_attributes(circle, &state, ops);
-	if (err != svgtiny_OK) {
-		svgtiny_cleanup_state_local(&state);
-		return err;
-	}
-
-	svgtiny_parse_paint_attributes(circle, &state);
-	svgtiny_parse_transform_attributes(circle, &state);
-
-	if (r < 0) {
-		state.diagram->error_line = -1; /* circle->line; */
-		state.diagram->error_message = "circle: r missing or negative";
-		svgtiny_cleanup_state_local(&state);
-		return svgtiny_SVG_ERROR;
-	}
-	if (r == 0) {
-		svgtiny_cleanup_state_local(&state);
-		return svgtiny_OK;
-	}
-
-	p = malloc(32 * sizeof p[0]);
-	if (!p) {
-		svgtiny_cleanup_state_local(&state);
-		return svgtiny_OUT_OF_MEMORY;
-	}
-
-	p[0] = svgtiny_PATH_MOVE;
-	p[1] = x + r;
-	p[2] = y;
-	p[3] = svgtiny_PATH_BEZIER;
-	p[4] = x + r;
-	p[5] = y + r * KAPPA;
-	p[6] = x + r * KAPPA;
-	p[7] = y + r;
-	p[8] = x;
-	p[9] = y + r;
-	p[10] = svgtiny_PATH_BEZIER;
-	p[11] = x - r * KAPPA;
-	p[12] = y + r;
-	p[13] = x - r;
-	p[14] = y + r * KAPPA;
-	p[15] = x - r;
-	p[16] = y;
-	p[17] = svgtiny_PATH_BEZIER;
-	p[18] = x - r;
-	p[19] = y - r * KAPPA;
-	p[20] = x - r * KAPPA;
-	p[21] = y - r;
-	p[22] = x;
-	p[23] = y - r;
-	p[24] = svgtiny_PATH_BEZIER;
-	p[25] = x + r * KAPPA;
-	p[26] = y - r;
-	p[27] = x + r;
-	p[28] = y - r * KAPPA;
-	p[29] = x + r;
-	p[30] = y;
-	p[31] = svgtiny_PATH_CLOSE;
-
-	err = svgtiny_add_path(p, 32, &state);
-
-	svgtiny_cleanup_state_local(&state);
-
-	return err;
-}
-
-
-/**
- * Parse an <ellipse> element node.
- */
-
-svgtiny_code svgtiny_parse_ellipse(dom_element *ellipse,
-		struct svgtiny_parse_state state)
-{
-	svgtiny_code err;
-	float x = 0, y = 0, rx = -1, ry = -1;
-	float *p;
-	struct svgtiny_parse_internal_operation ops[] = {
-		{
-			state.interned_cx,
-			SVGTIOP_LENGTH,
-			&state.viewport_width,
-			&x
-		}, {
-			state.interned_cy,
-			SVGTIOP_LENGTH,
-			&state.viewport_height,
-			&y
-		}, {
-			state.interned_rx,
-			SVGTIOP_LENGTH,
-			&state.viewport_width,
-			&rx
-		}, {
-			state.interned_ry,
-			SVGTIOP_LENGTH,
-			&state.viewport_height,
-			&ry
-		}, {
-			NULL, SVGTIOP_NONE, NULL, NULL
-		},
-	};
-
-	svgtiny_setup_state_local(&state);
-
-	err = svgtiny_parse_attributes(ellipse, &state, ops);
-	if (err != svgtiny_OK) {
-		svgtiny_cleanup_state_local(&state);
-		return err;
-	}
-
-	svgtiny_parse_paint_attributes(ellipse, &state);
-	svgtiny_parse_transform_attributes(ellipse, &state);
-
-	if (rx < 0 || ry < 0) {
-		state.diagram->error_line = -1; /* ellipse->line; */
-		state.diagram->error_message = "ellipse: rx or ry missing "
-				"or negative";
-		svgtiny_cleanup_state_local(&state);
-		return svgtiny_SVG_ERROR;
-	}
-	if (rx == 0 || ry == 0) {
-		svgtiny_cleanup_state_local(&state);
-		return svgtiny_OK;
-	}
-
-	p = malloc(32 * sizeof p[0]);
-	if (!p) {
-		svgtiny_cleanup_state_local(&state);
-		return svgtiny_OUT_OF_MEMORY;
-	}
-
-	p[0] = svgtiny_PATH_MOVE;
-	p[1] = x + rx;
-	p[2] = y;
-	p[3] = svgtiny_PATH_BEZIER;
-	p[4] = x + rx;
-	p[5] = y + ry * KAPPA;
-	p[6] = x + rx * KAPPA;
-	p[7] = y + ry;
-	p[8] = x;
-	p[9] = y + ry;
-	p[10] = svgtiny_PATH_BEZIER;
-	p[11] = x - rx * KAPPA;
-	p[12] = y + ry;
-	p[13] = x - rx;
-	p[14] = y + ry * KAPPA;
-	p[15] = x - rx;
-	p[16] = y;
-	p[17] = svgtiny_PATH_BEZIER;
-	p[18] = x - rx;
-	p[19] = y - ry * KAPPA;
-	p[20] = x - rx * KAPPA;
-	p[21] = y - ry;
-	p[22] = x;
-	p[23] = y - ry;
-	p[24] = svgtiny_PATH_BEZIER;
-	p[25] = x + rx * KAPPA;
-	p[26] = y - ry;
-	p[27] = x + rx;
-	p[28] = y - ry * KAPPA;
-	p[29] = x + rx;
-	p[30] = y;
-	p[31] = svgtiny_PATH_CLOSE;
-
-	err = svgtiny_add_path(p, 32, &state);
-
-	svgtiny_cleanup_state_local(&state);
-
-	return err;
-}
-
-
-/**
- * Parse a <line> element node.
- */
-
-svgtiny_code svgtiny_parse_line(dom_element *line,
-		struct svgtiny_parse_state state)
-{
-	svgtiny_code err;
-	float x1 = 0, y1 = 0, x2 = 0, y2 = 0;
-	float *p;
-	struct svgtiny_parse_internal_operation ops[] = {
-		{
-			state.interned_x1,
-			SVGTIOP_LENGTH,
-			&state.viewport_width,
-			&x1
-		}, {
-			state.interned_y1,
-			SVGTIOP_LENGTH,
-			&state.viewport_height,
-			&y1
-		}, {
-			state.interned_x2,
-			SVGTIOP_LENGTH,
-			&state.viewport_width,
-			&x2
-		}, {
-			state.interned_y2,
-			SVGTIOP_LENGTH,
-			&state.viewport_height,
-			&y2
-		}, {
-			NULL, SVGTIOP_NONE, NULL, NULL
-		},
-	};
-
-	svgtiny_setup_state_local(&state);
-
-	err = svgtiny_parse_attributes(line, &state, ops);
-	if (err != svgtiny_OK) {
-		svgtiny_cleanup_state_local(&state);
-		return err;
-	}
-
-	svgtiny_parse_paint_attributes(line, &state);
-	svgtiny_parse_transform_attributes(line, &state);
-
-	p = malloc(7 * sizeof p[0]);
-	if (!p) {
-		svgtiny_cleanup_state_local(&state);
-		return svgtiny_OUT_OF_MEMORY;
-	}
-
-	p[0] = svgtiny_PATH_MOVE;
-	p[1] = x1;
-	p[2] = y1;
-	p[3] = svgtiny_PATH_LINE;
-	p[4] = x2;
-	p[5] = y2;
-	p[6] = svgtiny_PATH_CLOSE;
-
-	err = svgtiny_add_path(p, 7, &state);
-
-	svgtiny_cleanup_state_local(&state);
-
-	return err;
-}
-
-
-/**
- * Parse a <polyline> or <polygon> element node.
- *
- * http://www.w3.org/TR/SVG11/shapes#PolylineElement
- * http://www.w3.org/TR/SVG11/shapes#PolygonElement
- */
-
-svgtiny_code svgtiny_parse_poly(dom_element *poly,
-		struct svgtiny_parse_state state, bool polygon)
-{
-	svgtiny_code err;
-	dom_string *points_str;
-	dom_exception exc;
-	float *pointv;
-	unsigned int pointc;
-
-	svgtiny_setup_state_local(&state);
-
-	svgtiny_parse_paint_attributes(poly, &state);
-	svgtiny_parse_transform_attributes(poly, &state);
-
-	exc = dom_element_get_attribute(poly, state.interned_points,
-					&points_str);
-	if (exc != DOM_NO_ERR) {
-		svgtiny_cleanup_state_local(&state);
-		return svgtiny_LIBDOM_ERROR;
-	}
-
-	if (points_str == NULL) {
-		state.diagram->error_line = -1; /* poly->line; */
-		state.diagram->error_message =
-				"polyline/polygon: missing points attribute";
-		svgtiny_cleanup_state_local(&state);
-		return svgtiny_SVG_ERROR;
-	}
-
-	/* allocate space for path: it will never have more elements than bytes
-	 * in the string.
-	 */
-	pointc = dom_string_byte_length(points_str);
-	pointv = malloc(sizeof pointv[0] * pointc);
-	if (pointv == NULL) {
-		svgtiny_cleanup_state_local(&state);
-		return svgtiny_OUT_OF_MEMORY;
-	}
-
-	err = svgtiny_parse_poly_points(dom_string_data(points_str),
-					dom_string_byte_length(points_str),
-					pointv,
-					&pointc);
-	dom_string_unref(points_str);
-	if (err != svgtiny_OK) {
-		free(pointv);
-		state.diagram->error_line = -1; /* poly->line; */
-		state.diagram->error_message =
-				"polyline/polygon: failed to parse points";
-	} else {
-		if (pointc > 0) {
-			pointv[0] = svgtiny_PATH_MOVE;
-		}
-		if (polygon) {
-			pointv[pointc++] = svgtiny_PATH_CLOSE;
-		}
-
-		err = svgtiny_add_path(pointv, pointc, &state);
-	}
-	svgtiny_cleanup_state_local(&state);
-
-	return err;
-}
-
-
-/**
- * Parse a <text> or <tspan> element node.
- */
-
-svgtiny_code svgtiny_parse_text(dom_element *text,
-		struct svgtiny_parse_state state)
-{
-	float x, y, width, height;
-	float px, py;
-	dom_node *child;
-	dom_exception exc;
-
-	svgtiny_setup_state_local(&state);
-
-	svgtiny_parse_position_attributes(text, state,
-			&x, &y, &width, &height);
-	svgtiny_parse_font_attributes(text, &state);
-	svgtiny_parse_transform_attributes(text, &state);
-
-	px = state.ctm.a * x + state.ctm.c * y + state.ctm.e;
-	py = state.ctm.b * x + state.ctm.d * y + state.ctm.f;
-/*	state.ctm.e = px - state.origin_x; */
-/*	state.ctm.f = py - state.origin_y; */
-
-	/*struct css_style style = state.style;
-	style.font_size.value.length.value *= state.ctm.a;*/
-
-        exc = dom_node_get_first_child(text, &child);
-	if (exc != DOM_NO_ERR) {
-		return svgtiny_LIBDOM_ERROR;
-		svgtiny_cleanup_state_local(&state);
-	}
-	while (child != NULL) {
-		dom_node *next;
-		dom_node_type nodetype;
-		svgtiny_code code = svgtiny_OK;
-
-		exc = dom_node_get_node_type(child, &nodetype);
-		if (exc != DOM_NO_ERR) {
-			dom_node_unref(child);
-			svgtiny_cleanup_state_local(&state);
-			return svgtiny_LIBDOM_ERROR;
-		}
-		if (nodetype == DOM_ELEMENT_NODE) {
-			dom_string *nodename;
-			exc = dom_node_get_node_name(child, &nodename);
-			if (exc != DOM_NO_ERR) {
-				dom_node_unref(child);
-				svgtiny_cleanup_state_local(&state);
-				return svgtiny_LIBDOM_ERROR;
-			}
-			if (dom_string_caseless_isequal(nodename,
-							state.interned_tspan))
-				code = svgtiny_parse_text((dom_element *)child,
-							  state);
-			dom_string_unref(nodename);
-		} else if (nodetype == DOM_TEXT_NODE) {
-			struct svgtiny_shape *shape = svgtiny_add_shape(&state);
-			dom_string *content;
-			if (shape == NULL) {
-				dom_node_unref(child);
-				svgtiny_cleanup_state_local(&state);
-				return svgtiny_OUT_OF_MEMORY;
-			}
-			exc = dom_text_get_whole_text(child, &content);
-			if (exc != DOM_NO_ERR) {
-				dom_node_unref(child);
-				svgtiny_cleanup_state_local(&state);
-				return svgtiny_LIBDOM_ERROR;
-			}
-			if (content != NULL) {
-				shape->text = strndup(dom_string_data(content),
-						      dom_string_byte_length(content));
-				dom_string_unref(content);
-			} else {
-				shape->text = strdup("");
-			}
-			shape->text_x = px;
-			shape->text_y = py;
-			state.diagram->shape_count++;
-		}
-
-		if (code != svgtiny_OK) {
-			dom_node_unref(child);
-			svgtiny_cleanup_state_local(&state);
-			return code;
-		}
-		exc = dom_node_get_next_sibling(child, &next);
-		dom_node_unref(child);
-		if (exc != DOM_NO_ERR) {
-			svgtiny_cleanup_state_local(&state);
-			return svgtiny_LIBDOM_ERROR;
-		}
-		child = next;
-	}
-
-	svgtiny_cleanup_state_local(&state);
-
-	return svgtiny_OK;
-}
-
-
-/**
- * Parse x, y, width, and height attributes, if present.
- */
-
-void svgtiny_parse_position_attributes(dom_element *node,
-		struct svgtiny_parse_state state,
-		float *x, float *y, float *width, float *height)
-{
-	struct svgtiny_parse_internal_operation styles[] = {
-		{
-			/* x */
-			state.interned_x,
-			SVGTIOP_LENGTH,
-			&state.viewport_width,
-			x
-		},{
-			/* y */
-			state.interned_y,
-			SVGTIOP_LENGTH,
-			&state.viewport_height,
-			y
-		},{
-			/* width */
-			state.interned_width,
-			SVGTIOP_LENGTH,
-			&state.viewport_width,
-			width
-		},{
-			/* height */
-			state.interned_height,
-			SVGTIOP_LENGTH,
-			&state.viewport_height,
-			height
-		},{
-			NULL, SVGTIOP_NONE, NULL, NULL
-		},
-	};
-
-	*x = 0;
-	*y = 0;
-	*width = state.viewport_width;
-	*height = state.viewport_height;
-
-	svgtiny_parse_attributes(node, &state, styles);
-}
-
-
-/**
- * Parse paint attributes, if present.
- */
-void svgtiny_parse_paint_attributes(dom_element *node,
-		struct svgtiny_parse_state *state)
-{
-	struct svgtiny_parse_internal_operation ops[] = {
-		{
-			/* fill color */
-			state->interned_fill,
-			SVGTIOP_PAINT,
-			&state->fill_grad,
-			&state->fill
-		}, {
-			/* stroke color */
-			state->interned_stroke,
-			SVGTIOP_PAINT,
-			&state->stroke_grad,
-			&state->stroke
-		}, {
-			/* stroke width */
-			state->interned_stroke_width,
-			SVGTIOP_INTLENGTH,
-			&state->viewport_width,
-			&state->stroke_width
-		},{
-			NULL, SVGTIOP_NONE, NULL, NULL
-		},
-	};
-
-	svgtiny_parse_attributes(node, state, ops);
-	svgtiny_parse_inline_style(node, state, ops);
-}
-
-
-/**
- * Parse font attributes, if present.
- */
-
-void svgtiny_parse_font_attributes(dom_element *node,
-		struct svgtiny_parse_state *state)
-{
-	/* TODO: Implement this, it never used to be */
-	UNUSED(node);
-	UNUSED(state);
-#ifdef WRITTEN_THIS_PROPERLY
-	const xmlAttr *attr;
-
-	UNUSED(state);
-
-	for (attr = node->properties; attr; attr = attr->next) {
-		if (strcmp((const char *) attr->name, "font-size") == 0) {
-			/*if (css_parse_length(
-					(const char *) attr->children->content,
-					&state->style.font_size.value.length,
-					true, true)) {
-				state->style.font_size.size =
-						CSS_FONT_SIZE_LENGTH;
-			}*/
-		}
-        }
-#endif
-}
-
-
-/**
- * Parse transform attributes, if present.
- *
- * http://www.w3.org/TR/SVG11/coords#TransformAttribute
- */
-
-void svgtiny_parse_transform_attributes(dom_element *node,
-		struct svgtiny_parse_state *state)
-{
-	dom_string *attr;
-	dom_exception exc;
-
-	exc = dom_element_get_attribute(node, state->interned_transform, &attr);
-	if (exc == DOM_NO_ERR && attr != NULL) {
-		svgtiny_parse_transform(dom_string_data(attr),
-					dom_string_byte_length(attr),
-					&state->ctm);
-
-		dom_string_unref(attr);
-	}
-}
-
-
-/**
- * Add a path to the svgtiny_diagram.
- */
-
-svgtiny_code svgtiny_add_path(float *p, unsigned int n,
-		struct svgtiny_parse_state *state)
-{
-	struct svgtiny_shape *shape;
-	svgtiny_code res = svgtiny_OK;
-
-	if (state->fill == svgtiny_LINEAR_GRADIENT) {
-		/* adds a shape to fill the path with a linear gradient */
-		res = svgtiny_gradient_add_fill_path(p, n, state);
-	}
-	if (res != svgtiny_OK) {
-		free(p);
-		return res;
-	}
-
-	if (state->stroke == svgtiny_LINEAR_GRADIENT) {
-		/* adds a shape to stroke the path with a linear gradient */
-		res = svgtiny_gradient_add_stroke_path(p, n, state);
-	}
-	if (res != svgtiny_OK) {
-		free(p);
-		return res;
-	}
-
-	/* if stroke and fill are transparent do not add a shape */
-	if ((state->fill == svgtiny_TRANSPARENT) &&
-	    (state->stroke == svgtiny_TRANSPARENT)) {
-		free(p);
-		return res;
-	}
-
-	svgtiny_transform_path(p, n, state);
-
-	shape = svgtiny_add_shape(state);
-	if (shape == NULL) {
-		free(p);
-		return svgtiny_OUT_OF_MEMORY;
-	}
-	shape->path = p;
-	shape->path_length = n;
-	state->diagram->shape_count++;
-
-
-	return svgtiny_OK;
-}
-
-
-/**
- * Add a svgtiny_shape to the svgtiny_diagram.
- */
-
-struct svgtiny_shape *svgtiny_add_shape(struct svgtiny_parse_state *state)
-{
-	struct svgtiny_shape *shape;
-
-	shape = realloc(state->diagram->shape,
-			(state->diagram->shape_count + 1) *
-			sizeof (state->diagram->shape[0]));
-	if (shape != NULL) {
-		state->diagram->shape = shape;
-
-		shape += state->diagram->shape_count;
-		shape->path = 0;
-		shape->path_length = 0;
-		shape->text = 0;
-		shape->fill = state->fill;
-		shape->stroke = state->stroke;
-		shape->stroke_width = lroundf((float) state->stroke_width *
-					      (state->ctm.a + state->ctm.d) / 2.0);
-		if (0 < state->stroke_width && shape->stroke_width == 0)
-			shape->stroke_width = 1;
-	}
-	return shape;
-}
-
-
-/**
- * Apply the current transformation matrix to a path.
- */
-
-void svgtiny_transform_path(float *p, unsigned int n,
-		struct svgtiny_parse_state *state)
-{
-	unsigned int j;
-
-	for (j = 0; j != n; ) {
-		unsigned int points = 0;
-		unsigned int k;
-		switch ((int) p[j]) {
-		case svgtiny_PATH_MOVE:
-		case svgtiny_PATH_LINE:
-			points = 1;
-			break;
-		case svgtiny_PATH_CLOSE:
-			points = 0;
-			break;
-		case svgtiny_PATH_BEZIER:
-			points = 3;
-			break;
-		default:
-			assert(0);
-		}
-		j++;
-		for (k = 0; k != points; k++) {
-			float x0 = p[j], y0 = p[j + 1];
-			float x = state->ctm.a * x0 + state->ctm.c * y0 +
-				state->ctm.e;
-			float y = state->ctm.b * x0 + state->ctm.d * y0 +
-				state->ctm.f;
-			p[j] = x;
-			p[j + 1] = y;
-			j += 2;
-		}
-	}
-}
-
-
-/**
  * Free all memory used by a diagram.
  */
-
 void svgtiny_free(struct svgtiny_diagram *svg)
 {
 	unsigned int i;
@@ -1994,23 +1236,3 @@ void svgtiny_free(struct svgtiny_diagram *svg)
 
 	free(svg);
 }
-
-#ifndef HAVE_STRNDUP
-char *svgtiny_strndup(const char *s, size_t n)
-{
-	size_t len;
-	char *s2;
-
-	for (len = 0; len != n && s[len]; len++)
-		continue;
-
-	s2 = malloc(len + 1);
-	if (s2 == NULL)
-		return NULL;
-
-	memcpy(s2, s, len);
-	s2[len] = '\0';
-
-	return s2;
-}
-#endif
