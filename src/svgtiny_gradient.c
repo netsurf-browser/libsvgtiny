@@ -185,16 +185,13 @@ svgtiny_parse_linear_gradient(dom_element *linear,
 {
 	dom_string *attr;
 	dom_exception exc;
+	svgtiny_code res;
+	dom_element *ref; /* referenced element */
 
-	exc = dom_element_get_attribute(linear, state->interned_href, &attr);
-	if (exc == DOM_NO_ERR && attr != NULL) {
-		if (dom_string_data(attr)[0] == (uint8_t) '#') {
-			svgtiny_find_gradient(dom_string_data(attr) + 1,
-					      dom_string_byte_length(attr) - 1,
-					      grad,
-					      state);
-		}
-		dom_string_unref(attr);
+	res = svgtiny_parse_element_from_href(linear, state, &ref);
+	if (res == svgtiny_OK && ref != NULL) {
+		svgtiny_update_gradient(ref, state, grad);
+		dom_node_unref(ref);
 	}
 
 	exc = dom_element_get_attribute(linear, state->interned_x1, &attr);
@@ -839,24 +836,17 @@ add_gradient_lines(struct svgtiny_parse_state *state,
 	return svgtiny_OK;
 }
 
-
 /**
- * Find a gradient by id and parse it.
+ * update a gradient from a dom element
  */
 svgtiny_code
-svgtiny_find_gradient(const char *id,
-		      size_t idlen,
-		      struct svgtiny_parse_state_gradient *grad,
-		      struct svgtiny_parse_state *state)
+svgtiny_update_gradient(dom_element *grad_element,
+			struct svgtiny_parse_state *state,
+			struct svgtiny_parse_state_gradient *grad)
 {
-	dom_element *gradient;
-	dom_string *id_str, *name;
+	dom_string *name;
 	dom_exception exc;
 	svgtiny_code res = svgtiny_OK;
-
-#ifdef GRADIENT_DEBUG
-	fprintf(stderr, "svgtiny_find_gradient: id \"%.*s\"\n", (int)idlen, id);
-#endif
 
 	grad->linear_gradient_stop_count = 0;
 	if (grad->gradient_x1 != NULL)
@@ -879,30 +869,16 @@ svgtiny_find_gradient(const char *id,
 	grad->gradient_transform.e = 0;
 	grad->gradient_transform.f = 0;
 
-	exc = dom_string_create_interned((const uint8_t *) id, idlen, &id_str);
-	if (exc != DOM_NO_ERR)
-		return svgtiny_SVG_ERROR;
-
-	exc = dom_document_get_element_by_id(state->document, id_str, &gradient);
-	dom_string_unref(id_str);
-	if (exc != DOM_NO_ERR || gradient == NULL) {
-#ifdef GRADIENT_DEBUG
-		fprintf(stderr, "gradient \"%.*s\" not found\n", (int)idlen, id);
-#endif
-		return svgtiny_SVG_ERROR;
-	}
-
-	exc = dom_node_get_node_name(gradient, &name);
+	exc = dom_node_get_node_name(grad_element, &name);
 	if (exc != DOM_NO_ERR) {
-		dom_node_unref(gradient);
 		return svgtiny_SVG_ERROR;
 	}
 
+	/* ensure element is a linear gradiant */
 	if (dom_string_isequal(name, state->interned_linearGradient)) {
-		res = svgtiny_parse_linear_gradient(gradient, grad, state);
+		res = svgtiny_parse_linear_gradient(grad_element, grad, state);
 	}
 
-	dom_node_unref(gradient);
 	dom_string_unref(name);
 
 #ifdef GRADIENT_DEBUG

@@ -1,6 +1,8 @@
 <svg viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="foo">
+    <linearGradient id="foo" href="#baz">
+    </linearGradient>
+    <linearGradient id="baz">
       <stop stop-color="#69f" offset="0"/>
       <stop style="stop-color:#468" offset="100%"/>
     </linearGradient>

@@ -29,6 +29,8 @@
  */
 #define KAPPA 0.5522847498
 
+/* debug flag which enables printing of libdom parse messages to stderr */
+#undef PRINT_XML_PARSE_MSG
 
 #if (defined(_GNU_SOURCE) && !defined(__APPLE__) || defined(__amigaos4__) || defined(__HAIKU__) || (defined(_POSIX_C_SOURCE) && ((_POSIX_C_SOURCE - 0) >= 200809L)))
 #define HAVE_STRNDUP
@@ -38,6 +40,7 @@ char *svgtiny_strndup(const char *s, size_t n);
 #define strndup svgtiny_strndup
 #endif
 
+static svgtiny_code parse_element(dom_element *element, struct svgtiny_parse_state *state);
 
 #ifndef HAVE_STRNDUP
 char *svgtiny_strndup(const char *s, size_t n)
@@ -179,9 +182,24 @@ static void svgtiny_cleanup_state_local(struct svgtiny_parse_state *state)
 
 static void ignore_msg(uint32_t severity, void *ctx, const char *msg, ...)
 {
+#ifdef PRINT_XML_PARSE_MSG
+#include <stdarg.h>
+        va_list l;
+
+        UNUSED(ctx);
+
+        va_start(l, msg);
+
+        fprintf(stderr, "%"PRIu32": ", severity);
+        vfprintf(stderr, msg, l);
+        fprintf(stderr, "\n");
+
+	va_end(l);
+#else
 	UNUSED(severity);
 	UNUSED(ctx);
 	UNUSED(msg);
+#endif
 }
 
 
@@ -321,6 +339,33 @@ svgtiny_add_path(float *p, unsigned int n, struct svgtiny_parse_state *state)
 
 
 	return svgtiny_OK;
+}
+
+
+/**
+ * return svgtiny_OK if source is an ancestor of target else svgtiny_LIBDOM_ERROR
+ */
+static svgtiny_code is_ancestor_node(dom_node *source, dom_node *target)
+{
+	dom_node *parent;
+	dom_exception exc;
+
+	parent = dom_node_ref(target);
+	while (parent != NULL) {
+		dom_node *next = NULL;
+		if (parent == source) {
+			dom_node_unref(parent);
+			return svgtiny_OK;
+		}
+		exc = dom_node_get_parent_node(parent, &next);
+		dom_node_unref(parent);
+		if (exc != DOM_NO_ERR) {
+			break;
+		}
+
+		parent = next;
+	}
+	return svgtiny_LIBDOM_ERROR;
 }
 
 
@@ -878,6 +923,46 @@ svgtiny_parse_text(dom_element *text, struct svgtiny_parse_state state)
 
 
 /**
+ * Parse a <use> element node.
+ *
+ * https://www.w3.org/TR/SVG2/struct.html#UseElement
+ */
+static svgtiny_code
+svgtiny_parse_use(dom_element *use, struct svgtiny_parse_state state)
+{
+	svgtiny_code res;
+	dom_element *ref; /* referenced element */
+
+	svgtiny_setup_state_local(&state);
+
+	res = svgtiny_parse_element_from_href(use, &state, &ref);
+	if (res != svgtiny_OK) {
+		svgtiny_cleanup_state_local(&state);
+		return res;
+	}
+
+	if (ref != NULL) {
+		/* found the reference */
+
+		/**
+		 * If the referenced element is a ancestor of the ‘use’ element,
+		 * then this is an invalid circular reference and the ‘use’
+		 * element is in error.
+		 */
+		res = is_ancestor_node((dom_node *)ref, (dom_node *)use);
+		if (res != svgtiny_OK) {
+			res = parse_element(ref, &state);
+		}
+		dom_node_unref(ref);
+	}
+
+	svgtiny_cleanup_state_local(&state);
+
+	return svgtiny_OK;
+}
+
+
+/**
  * Parse a <svg> or <g> element node.
  */
 static svgtiny_code
@@ -928,47 +1013,7 @@ svgtiny_parse_svg(dom_element *svg, struct svgtiny_parse_state state)
 			return svgtiny_LIBDOM_ERROR;
 		}
 		if (nodetype == DOM_ELEMENT_NODE) {
-			dom_string *nodename;
-			exc = dom_node_get_node_name(child, &nodename);
-			if (exc != DOM_NO_ERR) {
-				dom_node_unref(child);
-				svgtiny_cleanup_state_local(&state);
-				return svgtiny_LIBDOM_ERROR;
-			}
-			if (dom_string_caseless_isequal(state.interned_svg,
-							nodename))
-				code = svgtiny_parse_svg(child, state);
-			else if (dom_string_caseless_isequal(state.interned_g,
-							     nodename))
-				code = svgtiny_parse_svg(child, state);
-			else if (dom_string_caseless_isequal(state.interned_a,
-							     nodename))
-				code = svgtiny_parse_svg(child, state);
-			else if (dom_string_caseless_isequal(state.interned_path,
-							     nodename))
-				code = svgtiny_parse_path(child, state);
-			else if (dom_string_caseless_isequal(state.interned_rect,
-							     nodename))
-				code = svgtiny_parse_rect(child, state);
-			else if (dom_string_caseless_isequal(state.interned_circle,
-							     nodename))
-				code = svgtiny_parse_circle(child, state);
-			else if (dom_string_caseless_isequal(state.interned_ellipse,
-							     nodename))
-				code = svgtiny_parse_ellipse(child, state);
-			else if (dom_string_caseless_isequal(state.interned_line,
-							     nodename))
-				code = svgtiny_parse_line(child, state);
-			else if (dom_string_caseless_isequal(state.interned_polyline,
-							     nodename))
-				code = svgtiny_parse_poly(child, state, false);
-			else if (dom_string_caseless_isequal(state.interned_polygon,
-							     nodename))
-				code = svgtiny_parse_poly(child, state, true);
-			else if (dom_string_caseless_isequal(state.interned_text,
-							     nodename))
-				code = svgtiny_parse_text(child, state);
-			dom_string_unref(nodename);
+			code = parse_element(child, &state);
 		}
 		if (code != svgtiny_OK) {
 			dom_node_unref(child);
@@ -987,6 +1032,48 @@ svgtiny_parse_svg(dom_element *svg, struct svgtiny_parse_state state)
 
 	svgtiny_cleanup_state_local(&state);
 	return svgtiny_OK;
+}
+
+
+static svgtiny_code
+parse_element(dom_element *element, struct svgtiny_parse_state *state)
+{
+	dom_exception exc;
+	dom_string *nodename;
+	svgtiny_code code = svgtiny_OK;;
+
+	exc = dom_node_get_node_name(element, &nodename);
+	if (exc != DOM_NO_ERR) {
+		return svgtiny_LIBDOM_ERROR;
+	}
+
+	if (dom_string_caseless_isequal(state->interned_svg, nodename)) {
+		code = svgtiny_parse_svg(element, *state);
+	} else if (dom_string_caseless_isequal(state->interned_g, nodename)) {
+		code = svgtiny_parse_svg(element, *state);
+	} else if (dom_string_caseless_isequal(state->interned_a, nodename)) {
+		code = svgtiny_parse_svg(element, *state);
+	} else if (dom_string_caseless_isequal(state->interned_path, nodename)) {
+		code = svgtiny_parse_path(element, *state);
+	} else if (dom_string_caseless_isequal(state->interned_rect, nodename)) {
+		code = svgtiny_parse_rect(element, *state);
+	} else if (dom_string_caseless_isequal(state->interned_circle, nodename)) {
+		code = svgtiny_parse_circle(element, *state);
+	} else if (dom_string_caseless_isequal(state->interned_ellipse, nodename)) {
+		code = svgtiny_parse_ellipse(element, *state);
+	} else if (dom_string_caseless_isequal(state->interned_line, nodename)) {
+		code = svgtiny_parse_line(element, *state);
+	} else if (dom_string_caseless_isequal(state->interned_polyline, nodename)) {
+		code = svgtiny_parse_poly(element, *state, false);
+	} else if (dom_string_caseless_isequal(state->interned_polygon, nodename)) {
+		code = svgtiny_parse_poly(element, *state, true);
+	} else if (dom_string_caseless_isequal(state->interned_text, nodename)) {
+		code = svgtiny_parse_text(element, *state);
+	} else if (dom_string_caseless_isequal(state->interned_use, nodename)) {
+		code = svgtiny_parse_use(element, *state);
+	}
+	dom_string_unref(nodename);
+	return code;
 }
 
 

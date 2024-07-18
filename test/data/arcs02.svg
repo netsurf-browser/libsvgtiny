@@ -21,7 +21,7 @@
 
     <g font-size="30" >
       <g transform="translate(0,0)">
-        <use xlink:href="#baseEllipses"/>
+        <use href="#baseEllipses"/>
       </g>
       <g transform="translate(400,0)">
         <text x="50" y="210">large-arc-flag=0</text>
