@@ -990,6 +990,145 @@ svgtiny_parse_svg(dom_element *svg, struct svgtiny_parse_state state)
 }
 
 
+static svgtiny_code
+initialise_parse_state(struct svgtiny_parse_state *state,
+		       struct svgtiny_diagram *diagram,
+		       dom_document *document,
+		       dom_element *svg,
+		       int viewport_width,
+		       int viewport_height)
+{
+	float x, y, width, height;
+
+	memset(state, 0, sizeof(*state));
+
+	state->diagram = diagram;
+	state->document = document;
+
+#define SVGTINY_STRING_ACTION2(s,n)					\
+	if (dom_string_create_interned((const uint8_t *) #n,		\
+				       strlen(#n),			\
+				       &state->interned_##s)		\
+	    != DOM_NO_ERR) {						\
+		return svgtiny_LIBDOM_ERROR;				\
+	}
+#include "svgtiny_strings.h"
+#undef SVGTINY_STRING_ACTION2
+
+	/* get graphic dimensions */
+	state->viewport_width = viewport_width;
+	state->viewport_height = viewport_height;
+	svgtiny_parse_position_attributes(svg, *state, &x, &y, &width, &height);
+	diagram->width = width;
+	diagram->height = height;
+
+	/* set up parsing state */
+	state->viewport_width = width;
+	state->viewport_height = height;
+	state->ctm.a = 1; /*(float) viewport_width / (float) width;*/
+	state->ctm.b = 0;
+	state->ctm.c = 0;
+	state->ctm.d = 1; /*(float) viewport_height / (float) height;*/
+	state->ctm.e = 0; /*x;*/
+	state->ctm.f = 0; /*y;*/
+	/*state->style = css_base_style;
+	  state->style.font_size.value.length.value = option_font_size * 0.1;*/
+	state->fill = 0x000000;
+	state->stroke = svgtiny_TRANSPARENT;
+	state->stroke_width = 1;
+	return svgtiny_OK;
+}
+
+
+static svgtiny_code finalise_parse_state(struct svgtiny_parse_state *state)
+{
+	svgtiny_cleanup_state_local(state);
+
+#define SVGTINY_STRING_ACTION2(s,n)				\
+	if (state->interned_##s != NULL)			\
+		dom_string_unref(state->interned_##s);
+#include "svgtiny_strings.h"
+#undef SVGTINY_STRING_ACTION2
+	return svgtiny_OK;
+}
+
+
+static svgtiny_code get_svg_element(dom_document *document, dom_element **svg)
+{
+	dom_exception exc;
+	dom_string *svg_name;
+	lwc_string *svg_name_lwc;
+
+	/* find root <svg> element */
+	exc = dom_document_get_document_element(document, svg);
+	if (exc != DOM_NO_ERR) {
+		return svgtiny_LIBDOM_ERROR;
+	}
+        if (svg == NULL) {
+                /* no root element */
+		return svgtiny_SVG_ERROR;
+        }
+
+	/* ensure root element is <svg> */
+	exc = dom_node_get_node_name(*svg, &svg_name);
+	if (exc != DOM_NO_ERR) {
+		dom_node_unref(*svg);
+		return svgtiny_LIBDOM_ERROR;
+	}
+	if (lwc_intern_string("svg", 3 /* SLEN("svg") */,
+			      &svg_name_lwc) != lwc_error_ok) {
+		dom_string_unref(svg_name);
+		dom_node_unref(*svg);
+		return svgtiny_LIBDOM_ERROR;
+	}
+	if (!dom_string_caseless_lwc_isequal(svg_name, svg_name_lwc)) {
+		lwc_string_unref(svg_name_lwc);
+		dom_string_unref(svg_name);
+		dom_node_unref(*svg);
+		return svgtiny_NOT_SVG;
+	}
+
+	lwc_string_unref(svg_name_lwc);
+	dom_string_unref(svg_name);
+
+	return svgtiny_OK;
+}
+
+
+static svgtiny_code
+svg_document_from_buffer(uint8_t *buffer, size_t size, dom_document **document)
+{
+	dom_xml_parser *parser;
+	dom_xml_error err;
+
+	parser = dom_xml_parser_create(NULL, NULL, ignore_msg, NULL, document);
+
+	if (parser == NULL)
+		return svgtiny_LIBDOM_ERROR;
+
+	err = dom_xml_parser_parse_chunk(parser, buffer, size);
+	if (err != DOM_XML_OK) {
+		dom_node_unref(*document);
+		dom_xml_parser_destroy(parser);
+		return svgtiny_LIBDOM_ERROR;
+	}
+
+	err = dom_xml_parser_completed(parser);
+	if (err != DOM_XML_OK) {
+		dom_node_unref(*document);
+		dom_xml_parser_destroy(parser);
+		return svgtiny_LIBDOM_ERROR;
+	}
+
+	/* We're done parsing, drop the parser.
+	 * We now own the document entirely.
+	 */
+	dom_xml_parser_destroy(parser);
+
+	return svgtiny_OK;
+}
+
+
 /**
  * Add a svgtiny_shape to the svgtiny_diagram.
  *
@@ -1072,12 +1211,8 @@ struct svgtiny_diagram *svgtiny_create(void)
 	struct svgtiny_diagram *diagram;
 
 	diagram = calloc(1, sizeof(*diagram));
-	if (!diagram)
-		return 0;
 
 	return diagram;
-	free(diagram);
-	return NULL;
 }
 
 
@@ -1089,14 +1224,8 @@ svgtiny_code svgtiny_parse(struct svgtiny_diagram *diagram,
 			   int viewport_width, int viewport_height)
 {
 	dom_document *document;
-	dom_exception exc;
-	dom_xml_parser *parser;
-	dom_xml_error err;
 	dom_element *svg;
-	dom_string *svg_name;
-	lwc_string *svg_name_lwc;
 	struct svgtiny_parse_state state;
-	float x, y, width, height;
 	svgtiny_code code;
 
 	assert(diagram);
@@ -1105,116 +1234,27 @@ svgtiny_code svgtiny_parse(struct svgtiny_diagram *diagram,
 
 	UNUSED(url);
 
-	parser = dom_xml_parser_create(NULL, NULL,
-				       ignore_msg, NULL, &document);
+	code = svg_document_from_buffer((uint8_t *)buffer, size, &document);
+	if (code == svgtiny_OK) {
+		code = get_svg_element(document, &svg);
+		if (code == svgtiny_OK) {
+			code = initialise_parse_state(&state,
+						      diagram,
+						      document,
+						      svg,
+						      viewport_width,
+						      viewport_height);
+			if (code == svgtiny_OK) {
+				code = svgtiny_parse_svg(svg, state);
+			}
 
-	if (parser == NULL)
-		return svgtiny_LIBDOM_ERROR;
+			finalise_parse_state(&state);
 
-	err = dom_xml_parser_parse_chunk(parser, (uint8_t *)buffer, size);
-	if (err != DOM_XML_OK) {
+			dom_node_unref(svg);
+		}
 		dom_node_unref(document);
-		dom_xml_parser_destroy(parser);
-		return svgtiny_LIBDOM_ERROR;
 	}
 
-	err = dom_xml_parser_completed(parser);
-	if (err != DOM_XML_OK) {
-		dom_node_unref(document);
-		dom_xml_parser_destroy(parser);
-		return svgtiny_LIBDOM_ERROR;
-	}
-
-	/* We're done parsing, drop the parser.
-	 * We now own the document entirely.
-	 */
-	dom_xml_parser_destroy(parser);
-
-	/* find root <svg> element */
-	exc = dom_document_get_document_element(document, &svg);
-	if (exc != DOM_NO_ERR) {
-		dom_node_unref(document);
-		return svgtiny_LIBDOM_ERROR;
-	}
-        if (svg == NULL) {
-                /* no root svg element */
-                dom_node_unref(document);
-		return svgtiny_SVG_ERROR;
-        }
-
-	exc = dom_node_get_node_name(svg, &svg_name);
-	if (exc != DOM_NO_ERR) {
-		dom_node_unref(svg);
-		dom_node_unref(document);
-		return svgtiny_LIBDOM_ERROR;
-	}
-	if (lwc_intern_string("svg", 3 /* SLEN("svg") */,
-			      &svg_name_lwc) != lwc_error_ok) {
-		dom_string_unref(svg_name);
-		dom_node_unref(svg);
-		dom_node_unref(document);
-		return svgtiny_LIBDOM_ERROR;
-	}
-	if (!dom_string_caseless_lwc_isequal(svg_name, svg_name_lwc)) {
-		lwc_string_unref(svg_name_lwc);
-		dom_string_unref(svg_name);
-		dom_node_unref(svg);
-		dom_node_unref(document);
-		return svgtiny_NOT_SVG;
-	}
-
-	lwc_string_unref(svg_name_lwc);
-	dom_string_unref(svg_name);
-
-	/* get graphic dimensions */
-	memset(&state, 0, sizeof(state));
-	state.diagram = diagram;
-	state.document = document;
-	state.viewport_width = viewport_width;
-	state.viewport_height = viewport_height;
-
-#define SVGTINY_STRING_ACTION2(s,n)					\
-	if (dom_string_create_interned((const uint8_t *) #n,		\
-				       strlen(#n), &state.interned_##s)	\
-	    != DOM_NO_ERR) {						\
-		code = svgtiny_LIBDOM_ERROR;				\
-		goto cleanup;						\
-	}
-#include "svgtiny_strings.h"
-#undef SVGTINY_STRING_ACTION2
-
-	svgtiny_parse_position_attributes(svg, state, &x, &y, &width, &height);
-	diagram->width = width;
-	diagram->height = height;
-
-	/* set up parsing state */
-	state.viewport_width = width;
-	state.viewport_height = height;
-	state.ctm.a = 1; /*(float) viewport_width / (float) width;*/
-	state.ctm.b = 0;
-	state.ctm.c = 0;
-	state.ctm.d = 1; /*(float) viewport_height / (float) height;*/
-	state.ctm.e = 0; /*x;*/
-	state.ctm.f = 0; /*y;*/
-	/*state.style = css_base_style;
-	  state.style.font_size.value.length.value = option_font_size * 0.1;*/
-	state.fill = 0x000000;
-	state.stroke = svgtiny_TRANSPARENT;
-	state.stroke_width = 1;
-
-	/* parse tree */
-	code = svgtiny_parse_svg(svg, state);
-
-	dom_node_unref(svg);
-	dom_node_unref(document);
-
-cleanup:
-	svgtiny_cleanup_state_local(&state);
-#define SVGTINY_STRING_ACTION2(s,n)			\
-	if (state.interned_##s != NULL)			\
-		dom_string_unref(state.interned_##s);
-#include "svgtiny_strings.h"
-#undef SVGTINY_STRING_ACTION2
 	return code;
 }
 
