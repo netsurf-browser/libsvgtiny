@@ -6,6 +6,7 @@
  */
 
 #include <assert.h>
+#include <limits.h>
 #include <math.h>
 #include <string.h>
 #include <stdio.h>
@@ -427,7 +428,18 @@ compute_grad_points(float *p,
 		if(isnan(r0) || isnan(r1)) {
 			steps = 1;
 		} else {
-			steps = ceilf(fabsf(r1 - r0) / 0.05);
+			/* float -> int assignment is undefined unless
+			 * the value is guaranteed to fit */
+			float stepsf = ceilf(fabsf(r1 - r0) / 0.05);
+			if (isnan(stepsf)) {
+				steps = 1;
+			}
+			else if (stepsf > (float)UINT_MAX) {
+				steps = 1;
+			}
+			else {
+				steps = stepsf;
+			}
 		}
 
 		if (steps == 0)
