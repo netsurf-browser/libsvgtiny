@@ -77,9 +77,15 @@ echo "Tests:${SVGTESTTOTC} Pass:${SVGTESTPASSC} Fail:${SVGTESTFAILC} Error:${SVG
 
 # exit code
 if [ "${SVGTESTFAILC}" -gt 0 ]; then
+    if [ "${TEST_OUTPUT_ON_FAILURE}" != "" ]; then
+        cat ${TEST_LOG}
+    fi
     exit 1
 fi
 if [ "${SVGTESTERRC}" -gt 0 ]; then
+    if [ "${TEST_OUTPUT_ON_FAILURE}" != "" ]; then
+        cat ${TEST_LOG}
+    fi
     exit 2
 fi
 
