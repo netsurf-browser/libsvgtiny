@@ -87,8 +87,8 @@ jobs:
           - arm-riscos-gnueabi
           - arm-unknown-riscos
           - i686-w64-mingw32
-          - m5475-atari-mint
-          - m68k-atari-mint
+          # - m5475-atari-mint -- We don't build SVGTiny for Atari
+          # - m68k-atari-mint  -- We don't build SVGTiny for Atari
           - m68k-unknown-amigaos
           - ppc-amigaos
           - x86_64-w64-mingw32
