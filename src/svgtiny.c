@@ -408,6 +408,7 @@ svgtiny_parse_path(dom_element *path, struct svgtiny_parse_state state)
 				      dom_string_byte_length(path_d_str),
 				      &p,
 		                      &i);
+	dom_string_unref(path_d_str);
 	if (res != svgtiny_OK) {
 		svgtiny_cleanup_state_local(&state);
 		return res;
