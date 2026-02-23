@@ -792,6 +792,7 @@ svgtiny_parse_poly(dom_element *poly,
 	pointc = dom_string_byte_length(points_str);
 	pointv = malloc(sizeof pointv[0] * pointc);
 	if (pointv == NULL) {
+		dom_string_unref(points_str);
 		svgtiny_cleanup_state_local(&state);
 		return svgtiny_OUT_OF_MEMORY;
 	}
