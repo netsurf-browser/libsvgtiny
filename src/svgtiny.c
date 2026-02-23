@@ -1185,26 +1185,26 @@ static svgtiny_code get_svg_element(dom_document *document, dom_element **svg)
 
 
 static svgtiny_code
-svg_document_from_buffer(uint8_t *buffer, size_t size, dom_document **document)
+svg_document_from_buffer(uint8_t *buffer, size_t size, dom_document **document_out)
 {
 	dom_xml_parser *parser;
 	dom_xml_error err;
+	dom_document *document;
 
-	parser = dom_xml_parser_create(NULL, NULL, ignore_msg, NULL, document);
-
+	parser = dom_xml_parser_create(NULL, NULL, ignore_msg, NULL, &document);
 	if (parser == NULL)
 		return svgtiny_LIBDOM_ERROR;
 
 	err = dom_xml_parser_parse_chunk(parser, buffer, size);
 	if (err != DOM_XML_OK) {
-		dom_node_unref(*document);
+		dom_node_unref(document);
 		dom_xml_parser_destroy(parser);
 		return svgtiny_LIBDOM_ERROR;
 	}
 
 	err = dom_xml_parser_completed(parser);
 	if (err != DOM_XML_OK) {
-		dom_node_unref(*document);
+		dom_node_unref(document);
 		dom_xml_parser_destroy(parser);
 		return svgtiny_LIBDOM_ERROR;
 	}
@@ -1213,6 +1213,8 @@ svg_document_from_buffer(uint8_t *buffer, size_t size, dom_document **document)
 	 * We now own the document entirely.
 	 */
 	dom_xml_parser_destroy(parser);
+
+	*document_out = document;
 
 	return svgtiny_OK;
 }
