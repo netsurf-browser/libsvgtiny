@@ -86,33 +86,26 @@ static void write_mvg(FILE *fh, float scale, struct svgtiny_diagram *diagram)
         }
 }
 
-int main(int argc, char *argv[])
+/**
+ * load file into memory buffer
+ */
+static int readfile(const char *filename, char **buffer_out, size_t *size_out)
 {
         FILE *fd;
-        float scale = 1.0;
         struct stat sb;
         char *buffer;
         size_t size;
         size_t n;
-        struct svgtiny_diagram *diagram;
-        svgtiny_code code;
-        FILE *outf = stdout;
 
-        if (argc < 2 || argc > 4) {
-                fprintf(stderr, "Usage: %s FILE [SCALE] [out]\n", argv[0]);
-                return 1;
-        }
-
-        /* load file into memory buffer */
-        fd = fopen(argv[1], "rb");
+        fd = fopen(filename, "rb");
         if (!fd) {
-                perror(argv[1]);
+                perror(filename);
                 return 1;
         }
 
-        if (stat(argv[1], &sb)) {
-                perror(argv[1]);
-                return 1;
+        if (stat(filename, &sb)) {
+                perror(filename);
+                return 2;
         }
         size = sb.st_size;
 
@@ -120,31 +113,49 @@ int main(int argc, char *argv[])
         if (!buffer) {
                 fprintf(stderr, "Unable to allocate %lld bytes\n",
                                 (long long) size);
-                return 1;
+                return 3;
         }
 
         n = fread(buffer, 1, size, fd);
         if (n != size) {
-                perror(argv[1]);
-                return 1;
+                perror(filename);
+                return 4;
         }
 
         fclose(fd);
+
+	*buffer_out = buffer;
+	*size_out = size;
+
+	return 0;
+}
+
+int main(int argc, char *argv[])
+{
+        float scale = 1.0;
+        char *buffer;
+        size_t size;
+        struct svgtiny_diagram *diagram;
+        svgtiny_code code;
+        FILE *outf = stdout;
+	int res;
+
+        if (argc < 2 || argc > 4) {
+                fprintf(stderr, "Usage: %s FILE [SCALE] [out]\n", argv[0]);
+                return 1;
+        }
+
+	/* readfile */
+	res = readfile(argv[1], &buffer, &size);
+	if (res != 0) {
+		return res;
+	}
 
         /* read scale argument */
         if (argc > 2) {
                 scale = atof(argv[2]);
                 if (scale == 0)
                         scale = 1.0;
-        }
-
-        /* output file */
-        if (argc > 3) {
-                outf = fopen(argv[3], "w+");
-                if (outf == NULL) {
-                        fprintf(stderr, "Unable to open %s for writing\n", argv[3]);
-                        return 2;
-                }
         }
 
         /* create svgtiny object */
@@ -156,8 +167,9 @@ int main(int argc, char *argv[])
 
         /* parse */
         code = svgtiny_parse(diagram, buffer, size, argv[1], 1000, 1000);
+        free(buffer);
         if (code != svgtiny_OK) {
-                fprintf(stderr, "svgtiny_parse failed: ");
+		fprintf(stderr, "svgtiny_parse failed: ");
                 switch (code) {
                 case svgtiny_OUT_OF_MEMORY:
                         fprintf(stderr, "svgtiny_OUT_OF_MEMORY");
@@ -170,25 +182,37 @@ int main(int argc, char *argv[])
                         break;
                 case svgtiny_SVG_ERROR:
                         fprintf(stderr, "svgtiny_SVG_ERROR: line %i: %s",
-                                        diagram->error_line,
-                                        diagram->error_message);
+				diagram->error_line,
+				diagram->error_message);
                         break;
                 default:
                         fprintf(stderr, "unknown svgtiny_code %i", code);
                         break;
                 }
                 fprintf(stderr, "\n");
-        }
 
-        free(buffer);
+		svgtiny_free(diagram);
 
-        write_mvg(outf, scale, diagram);
+		return 0;
+	}
 
-        if (argc > 3) {
-                fclose(outf);
-        }
+	/* output file */
+	if (argc > 3) {
+		outf = fopen(argv[3], "w+");
+		if (outf == NULL) {
+			fprintf(stderr, "Unable to open %s for writing\n", argv[3]);
+			svgtiny_free(diagram);
+			return 2;
+		}
+	}
 
-        svgtiny_free(diagram);
+	write_mvg(outf, scale, diagram);
 
-        return 0;
+	if (argc > 3) {
+		fclose(outf);
+	}
+
+	svgtiny_free(diagram);
+
+	return 0;
 }
